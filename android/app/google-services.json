@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018651216333",
+    "project_id": "my-app-fak",
+    "storage_bucket": "my-app-fak.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018651216333:android:d0d09d0682c6e27efd1c84",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMUElDu-qeEvtDpnVl593WaUiIQm85NzY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
