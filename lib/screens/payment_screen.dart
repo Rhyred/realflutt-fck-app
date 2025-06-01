@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart'; // Assuming you have lottie for animations
 class PaymentScreen extends StatefulWidget {
   final String userType; // 'Registered' or 'Guest'
 
-  const PaymentScreen({Key? key, required this.userType}) : super(key: key);
+  const PaymentScreen({super.key, required this.userType});
 
   @override
   _PaymentScreenState createState() => _PaymentScreenState();

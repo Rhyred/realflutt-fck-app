@@ -8,11 +8,11 @@ class BookingConfirmationScreen extends StatefulWidget {
   final String userType; // 'Registered' or 'Guest'
 
   const BookingConfirmationScreen({
-    Key? key,
+    super.key,
     required this.slotNumber,
     required this.bookingTime,
     required this.userType,
-  }) : super(key: key);
+  });
 
   @override
   _BookingConfirmationScreenState createState() => _BookingConfirmationScreenState();

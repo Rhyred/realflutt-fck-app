@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({Key? key}) : super(key: key);
+  const AboutScreen({super.key});
 
   final String teamName = 'Smart Parking Team';
   final List<Map<String, String>> creators = const [
