@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:myapp/services/parking_service.dart';
 
 class BookingConfirmationScreen extends StatefulWidget {
@@ -15,7 +14,8 @@ class BookingConfirmationScreen extends StatefulWidget {
   });
 
   @override
-  _BookingConfirmationScreenState createState() => _BookingConfirmationScreenState();
+  State<BookingConfirmationScreen> createState() =>
+      _BookingConfirmationScreenState();
 }
 
 class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
@@ -42,12 +42,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       setState(() {
         _isLoading = true;
       });
-      ParkingService().updateParkingSlotStatus(widget.slotNumber, true).then((_) {
-        print('Booking confirmed for registered user for slot ${widget.slotNumber}');
-        Navigator.popUntil(context, ModalRoute.withName('/dashboard')); // Navigate back to dashboard
+      ParkingService()
+          .updateParkingSlotStatus(widget.slotNumber, true)
+          .then((_) {
+        // Booking confirmed
+        if (mounted) {
+          Navigator.popUntil(context,
+              ModalRoute.withName('/dashboard')); // Navigate back to dashboard
+        }
       }).catchError((error) {
         // Handle error updating Firebase
-        print('Error confirming booking: $error');
         _showErrorSnackbar('Failed to confirm booking: $error');
       }).whenComplete(() {
         setState(() {
@@ -81,7 +85,8 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             const SizedBox(height: 24.0),
             _buildDetailRow('Slot Number:', widget.slotNumber),
             const SizedBox(height: 16.0),
-            _buildDetailRow('Booking Time:', widget.bookingTime.toString()), // Format this later
+            _buildDetailRow('Booking Time:',
+                widget.bookingTime.toString()), // Format this later
             const SizedBox(height: 16.0),
             _buildDetailRow('User Type:', widget.userType),
             const SizedBox(height: 24.0),
@@ -98,9 +103,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             const SizedBox(height: 40.0),
             Center(
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _confirmBooking, // Disable button when loading
+                onPressed: _isLoading
+                    ? null
+                    : _confirmBooking, // Disable button when loading
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 40.0, vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),

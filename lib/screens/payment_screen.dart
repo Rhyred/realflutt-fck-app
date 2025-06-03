@@ -10,7 +10,8 @@ class PaymentScreen extends StatefulWidget {
   _PaymentScreenState createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProviderStateMixin {
+class _PaymentScreenState extends State<PaymentScreen>
+    with SingleTickerProviderStateMixin {
   bool _paymentSuccessful = false;
   bool _isProcessing = false; // Added processing state
   late AnimationController _animationController;
@@ -18,7 +19,8 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
   }
 
   @override
@@ -61,11 +63,13 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Lottie.asset(
-                    'assets/success_animation.json', // You'll need to add a success animation Lottie file
+                    'assets/success_animation.json',
                     controller: _animationController,
                     onLoaded: (composition) {
                       _animationController.duration = composition.duration;
                     },
+                    width: 200,
+                    height: 200,
                   ),
                   const SizedBox(height: 24.0),
                   const Text(
@@ -85,7 +89,9 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      widget.userType == 'Guest' ? 'Scan QRIS to Pay' : 'Show ID Card',
+                      widget.userType == 'Guest'
+                          ? 'Scan QRIS to Pay'
+                          : 'Show ID Card',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 24.0,
@@ -99,7 +105,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                         color: Colors.white,
                         height: 200,
                         // TODO: Display QRIS code here
-                        child: const Center(child: Text('QRIS Code Placeholder')),
+                        child: Text("QRIS code will be displayed here"),
                       ),
                     if (widget.userType == 'Registered')
                       const Icon(
@@ -109,7 +115,9 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                       ),
                     const SizedBox(height: 40.0),
                     ElevatedButton(
-                      onPressed: _isProcessing ? null : _processPayment, // Disable button when processing
+                      onPressed: _isProcessing
+                          ? null
+                          : _processPayment, // Disable button when processing
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         shape: RoundedRectangleBorder(
@@ -120,10 +128,13 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                       ),
                       child: _isProcessing // Show loading indicator in button
                           ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             )
                           : Text(
-                              widget.userType == 'Guest' ? 'I have Paid' : 'ID Card Checked',
+                              widget.userType == 'Guest'
+                                  ? 'I have Paid'
+                                  : 'ID Card Checked',
                               style: const TextStyle(fontSize: 18.0),
                             ),
                     ),

@@ -79,7 +79,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginSignupScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/booking_confirmation': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           if (args == null) {
             // Handle the case where arguments are not provided
             return const Scaffold(
@@ -95,7 +96,8 @@ class MyApp extends StatelessWidget {
           );
         },
         '/payment': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           if (args == null || !args.containsKey('userType')) {
             // Handle the case where arguments are not provided or userType is missing
             return const Scaffold(

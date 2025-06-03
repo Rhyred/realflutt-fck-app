@@ -19,7 +19,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
   bool _isLoading = false; // Added loading state
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -28,8 +29,10 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+    _opacityAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
@@ -82,13 +85,13 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
   }
 
   Future<void> _signUpWithEmailPassword() async {
-     setState(() {
+    setState(() {
       _isLoading = true;
     });
     if (_passwordController.text != _confirmPasswordController.text) {
       // Passwords do not match (e.g., show a snackbar)
       _showErrorSnackbar('Passwords do not match');
-       setState(() {
+      setState(() {
         _isLoading = false;
       });
       return;
@@ -99,43 +102,44 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
         password: _passwordController.text,
       );
       // Navigate to dashboard on success
-       Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
       // Handle errors (e.g., show a snackbar)
       _showErrorSnackbar('Failed to sign up: ${e.message}');
     } finally {
-       setState(() {
+      setState(() {
         _isLoading = false;
       });
     }
   }
 
   Future<void> _signInWithGoogle() async {
-     setState(() {
+    setState(() {
       _isLoading = true;
     });
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         // The user canceled the sign-in
-         setState(() {
+        setState(() {
           _isLoading = false;
         });
         return;
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
       // Navigate to dashboard on success
-       Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
       // Handle errors (e.g., show a snackbar)
       _showErrorSnackbar('Failed to sign in with Google: ${e.message}');
     } finally {
-       setState(() {
+      setState(() {
         _isLoading = false;
       });
     }
@@ -152,7 +156,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
             opacity: _opacityAnimation,
             child: SlideTransition(
               position: _slideAnimation,
-              child: Stack( // Added Stack for loading indicator
+              child: Stack(
+                // Added Stack for loading indicator
                 alignment: Alignment.center,
                 children: [
                   Column(
@@ -219,7 +224,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                         ),
                       const SizedBox(height: 24.0),
                       ElevatedButton(
-                        onPressed: _isLoading ? null : (_isLogin ? _signInWithEmailPassword : _signUpWithEmailPassword),
+                        onPressed: _isLoading
+                            ? null
+                            : (_isLogin
+                                ? _signInWithEmailPassword
+                                : _signUpWithEmailPassword),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           shape: RoundedRectangleBorder(
@@ -237,7 +246,9 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                       TextButton(
                         onPressed: _isLoading ? null : _toggleForm,
                         child: Text(
-                          _isLogin ? 'Don\'t have an account? Sign Up' : 'Already have an account? Login',
+                          _isLogin
+                              ? 'Don\'t have an account? Sign Up'
+                              : 'Already have an account? Login',
                           style: const TextStyle(color: Colors.white70),
                         ),
                       ),
@@ -252,9 +263,11 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black87,
                         ),
-                        icon: Image.asset(
-                          'assets/google_logo.png', // You'll need to add a Google logo asset
-                          height: 24.0,
+                        icon: const Icon(
+                          Icons
+                              .g_mobiledata, // Using a Google-like icon from Material Icons
+                          size: 24.0,
+                          color: Colors.red,
                         ),
                         label: const Text(
                           'Sign in with Google',
