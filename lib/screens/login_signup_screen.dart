@@ -6,10 +6,10 @@ class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
 
   @override
-  _LoginSignupScreenState createState() => _LoginSignupScreenState();
+  LoginSignupScreenState createState() => LoginSignupScreenState();
 }
 
-class _LoginSignupScreenState extends State<LoginSignupScreen>
+class LoginSignupScreenState extends State<LoginSignupScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
@@ -55,6 +55,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
   }
 
   void _showErrorSnackbar(String message) {
+    if (!mounted) return; // Add mounted check
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -72,15 +73,20 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
         email: _emailController.text,
         password: _passwordController.text,
       );
+      if (!mounted) return; // Add mounted check
       // Navigate to dashboard on success
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
       // Handle errors (e.g., show a snackbar)
+      if (!mounted) return; // Add mounted check
       _showErrorSnackbar('Failed to sign in: ${e.message}');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        // Check mounted before setState
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -90,6 +96,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
     });
     if (_passwordController.text != _confirmPasswordController.text) {
       // Passwords do not match (e.g., show a snackbar)
+      if (!mounted) return; // Add mounted check
       _showErrorSnackbar('Passwords do not match');
       setState(() {
         _isLoading = false;
@@ -101,15 +108,20 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
         email: _emailController.text,
         password: _passwordController.text,
       );
+      if (!mounted) return; // Add mounted check
       // Navigate to dashboard on success
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
       // Handle errors (e.g., show a snackbar)
+      if (!mounted) return; // Add mounted check
       _showErrorSnackbar('Failed to sign up: ${e.message}');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        // Check mounted before setState
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -121,6 +133,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         // The user canceled the sign-in
+        if (!mounted) return; // Add mounted check
         setState(() {
           _isLoading = false;
         });
@@ -132,16 +145,45 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      if (!mounted) return; // Add mounted check
       await FirebaseAuth.instance.signInWithCredential(credential);
+      if (!mounted) return; // Add mounted check
       // Navigate to dashboard on success
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
       // Handle errors (e.g., show a snackbar)
+      if (!mounted) return; // Add mounted check
       _showErrorSnackbar('Failed to sign in with Google: ${e.message}');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        // Check mounted before setState
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _signInAnonymously() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+      if (!mounted) return; // Add mounted check
+      // Navigate to dashboard on success
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } on FirebaseAuthException catch (e) {
+      // Handle errors (e.g., show a snackbar)
+      if (!mounted) return; // Add mounted check
+      _showErrorSnackbar('Failed to sign in anonymously: ${e.message}');
+    } finally {
+      if (mounted) {
+        // Check mounted before setState
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -180,7 +222,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                           labelText: 'Email',
                           labelStyle: const TextStyle(color: Colors.white70),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withAlpha(25),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide.none,
@@ -196,7 +238,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                           labelText: 'Password',
                           labelStyle: const TextStyle(color: Colors.white70),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.1),
+                          fillColor: Colors.white.withAlpha(25),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide.none,
@@ -213,7 +255,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                             labelText: 'Confirm Password',
                             labelStyle: const TextStyle(color: Colors.white70),
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.1),
+                            fillColor: Colors.white.withAlpha(25),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8.0),
                               borderSide: BorderSide.none,
@@ -271,6 +313,22 @@ class _LoginSignupScreenState extends State<LoginSignupScreen>
                         ),
                         label: const Text(
                           'Sign in with Google',
+                          style: TextStyle(fontSize: 18.0),
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _signInAnonymously,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          backgroundColor: Colors.grey,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text(
+                          'Continue as Guest',
                           style: TextStyle(fontSize: 18.0),
                         ),
                       ),

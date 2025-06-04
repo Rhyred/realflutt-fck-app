@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/services/parking_service.dart';
+import 'package:smart_parking_app/services/parking_service.dart';
 
 class BookingConfirmationScreen extends StatefulWidget {
   final String slotNumber;

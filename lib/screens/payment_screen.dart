@@ -7,10 +7,10 @@ class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key, required this.userType});
 
   @override
-  _PaymentScreenState createState() => _PaymentScreenState();
+  PaymentScreenState createState() => PaymentScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen>
+class PaymentScreenState extends State<PaymentScreen>
     with SingleTickerProviderStateMixin {
   bool _paymentSuccessful = false;
   bool _isProcessing = false; // Added processing state
@@ -105,7 +105,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                         color: Colors.white,
                         height: 200,
                         // TODO: Display QRIS code here
-                        child: Text("QRIS code will be displayed here"),
+                        child: const Text("QRIS code will be displayed here"),
                       ),
                     if (widget.userType == 'Registered')
                       const Icon(

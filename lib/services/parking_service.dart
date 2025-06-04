@@ -5,12 +5,11 @@ class ParkingService {
       FirebaseDatabase.instance.ref('parking_slots');
 
   // Simulate updating a parking slot status
-  Future<void> updateParkingSlotStatus(String slotNumber, bool isOccupied) async {
+  Future<void> updateParkingSlotStatus(
+      String slotNumber, bool isOccupied) async {
     try {
       await _parkingSlotsRef.child(slotNumber).set(isOccupied);
-      print('Simulated update: Slot $slotNumber is now ${isOccupied ? "occupied" : "available"}');
     } catch (e) {
-      print('Error simulating parking slot update: $e');
       // Handle error
     }
   }
