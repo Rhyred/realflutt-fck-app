@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,6 +15,9 @@ class DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userType = user == null ? 'Guest' : 'Registered';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Smart Parking Dashboard'),
@@ -54,7 +58,7 @@ class DashboardScreenState extends State<DashboardScreen> {
                 final slotNumber = slotEntry.key as String;
                 final isOccupied = slotEntry.value as bool;
 
-                return _buildParkingSlot(slotNumber, isOccupied);
+                return _buildParkingSlot(slotNumber, isOccupied, userType);
               },
             ),
           );
@@ -63,7 +67,8 @@ class DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildParkingSlot(String slotNumber, bool isOccupied) {
+  Widget _buildParkingSlot(
+      String slotNumber, bool isOccupied, String userType) {
     final color = isOccupied ? Colors.red : Colors.green;
     final statusText = isOccupied ? 'Terisi' : 'Tersedia';
 
@@ -76,7 +81,7 @@ class DashboardScreenState extends State<DashboardScreen> {
           arguments: {
             'slotNumber': slotNumber,
             'bookingTime': DateTime.now(),
-            'userType': 'Registered', // TODO: Tentukan tipe pengguna sebenarnya
+            'userType': userType,
           },
         );
       },
