@@ -4,7 +4,7 @@ import 'package:smart_parking_app/services/parking_service.dart';
 class BookingConfirmationScreen extends StatefulWidget {
   final String slotNumber;
   final DateTime bookingTime;
-  final String userType; // 'Registered' or 'Guest'
+  final String userType; // 'Registered' atau 'Guest'
 
   const BookingConfirmationScreen({
     super.key,
@@ -19,7 +19,7 @@ class BookingConfirmationScreen extends StatefulWidget {
 }
 
 class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
-  bool _isLoading = false; // Added loading state
+  bool _isLoading = false; // Menambahkan status loading
 
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -38,21 +38,23 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         arguments: {'userType': widget.userType},
       );
     } else {
-      // Implement booking logic for registered users using ParkingService
+      // Implementasikan logika pemesanan untuk pengguna terdaftar menggunakan ParkingService
       setState(() {
         _isLoading = true;
       });
       ParkingService()
           .updateParkingSlotStatus(widget.slotNumber, true)
           .then((_) {
-        // Booking confirmed
+        // Pemesanan dikonfirmasi
         if (mounted) {
-          Navigator.popUntil(context,
-              ModalRoute.withName('/dashboard')); // Navigate back to dashboard
+          Navigator.popUntil(
+              context,
+              ModalRoute.withName(
+                  '/dashboard')); // Navigasi kembali ke dashboard
         }
       }).catchError((error) {
-        // Handle error updating Firebase
-        _showErrorSnackbar('Failed to confirm booking: $error');
+        // Tangani kesalahan saat memperbarui Firebase
+        _showErrorSnackbar('Gagal mengonfirmasi pemesanan: $error');
       }).whenComplete(() {
         setState(() {
           _isLoading = false;
@@ -86,7 +88,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             _buildDetailRow('Slot Number:', widget.slotNumber),
             const SizedBox(height: 16.0),
             _buildDetailRow('Booking Time:',
-                widget.bookingTime.toString()), // Format this later
+                widget.bookingTime.toString()), // Format ini nanti
             const SizedBox(height: 16.0),
             _buildDetailRow('User Type:', widget.userType),
             const SizedBox(height: 24.0),
@@ -105,7 +107,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading
                     ? null
-                    : _confirmBooking, // Disable button when loading
+                    : _confirmBooking, // Nonaktifkan tombol saat loading
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 40.0, vertical: 16.0),
@@ -115,7 +117,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                 ),
-                child: _isLoading // Show loading indicator in button
+                child: _isLoading // Tampilkan indikator loading di tombol
                     ? const CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       )

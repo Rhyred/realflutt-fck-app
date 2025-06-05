@@ -4,16 +4,16 @@ class ParkingService {
   final DatabaseReference _parkingSlotsRef =
       FirebaseDatabase.instance.ref('parking_slots');
 
-  // Simulate updating a parking slot status
+  // Simulasikan pembaruan status slot parkir
   Future<void> updateParkingSlotStatus(
       String slotNumber, bool isOccupied) async {
     try {
       await _parkingSlotsRef.child(slotNumber).set(isOccupied);
     } catch (e) {
-      // Handle error
+      // Tangani kesalahan
     }
   }
 
-  // You could add more methods here for interacting with parking data
-  // e.g., getting a single slot's status, listening to changes for a specific slot, etc.
+  // Anda dapat menambahkan metode lain di sini untuk berinteraksi dengan data parkir
+  // contoh: mendapatkan status slot tunggal, mendengarkan perubahan untuk slot tertentu, dll.
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart'; // Assuming you have lottie for animations
+import 'package:lottie/lottie.dart'; // Asumsi Anda memiliki lottie untuk animasi
 
 class PaymentScreen extends StatefulWidget {
-  final String userType; // 'Registered' or 'Guest'
+  final String userType; // 'Registered' atau 'Guest'
 
   const PaymentScreen({super.key, required this.userType});
 
@@ -13,7 +13,7 @@ class PaymentScreen extends StatefulWidget {
 class PaymentScreenState extends State<PaymentScreen>
     with SingleTickerProviderStateMixin {
   bool _paymentSuccessful = false;
-  bool _isProcessing = false; // Added processing state
+  bool _isProcessing = false; // Menambahkan status pemrosesan
   late AnimationController _animationController;
 
   @override
@@ -31,18 +31,18 @@ class PaymentScreenState extends State<PaymentScreen>
 
   void _processPayment() {
     setState(() {
-      _isProcessing = true; // Start processing
+      _isProcessing = true; // Mulai pemrosesan
     });
-    // Simulate payment processing
+    // Simulasikan pemrosesan pembayaran
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
-        _isProcessing = false; // End processing
+        _isProcessing = false; // Akhiri pemrosesan
         _paymentSuccessful = true;
       });
       _animationController.forward();
       _animationController.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          // Navigate back to dashboard or a confirmation screen
+          // Navigasi kembali ke dashboard atau layar konfirmasi
           Navigator.popUntil(context, ModalRoute.withName('/dashboard'));
         }
       });
@@ -104,12 +104,13 @@ class PaymentScreenState extends State<PaymentScreen>
                       Container(
                         color: Colors.white,
                         height: 200,
-                        // TODO: Display QRIS code here
+                        // TODO: Tampilkan kode QRIS di sini
                         child: const Text("QRIS code will be displayed here"),
                       ),
                     if (widget.userType == 'Registered')
                       const Icon(
-                        Icons.credit_card, // Placeholder icon for ID card
+                        Icons
+                            .credit_card, // Ikon placeholder untuk kartu identitas
                         size: 150,
                         color: Colors.white70,
                       ),
@@ -117,7 +118,7 @@ class PaymentScreenState extends State<PaymentScreen>
                     ElevatedButton(
                       onPressed: _isProcessing
                           ? null
-                          : _processPayment, // Disable button when processing
+                          : _processPayment, // Nonaktifkan tombol saat memproses
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         shape: RoundedRectangleBorder(
@@ -126,17 +127,18 @@ class PaymentScreenState extends State<PaymentScreen>
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                       ),
-                      child: _isProcessing // Show loading indicator in button
-                          ? const CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            )
-                          : Text(
-                              widget.userType == 'Guest'
-                                  ? 'I have Paid'
-                                  : 'ID Card Checked',
-                              style: const TextStyle(fontSize: 18.0),
-                            ),
+                      child:
+                          _isProcessing // Tampilkan indikator loading di tombol
+                              ? const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                )
+                              : Text(
+                                  widget.userType == 'Guest'
+                                      ? 'I have Paid'
+                                      : 'ID Card Checked',
+                                  style: const TextStyle(fontSize: 18.0),
+                                ),
                     ),
                   ],
                 ),

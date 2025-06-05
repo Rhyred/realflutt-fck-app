@@ -16,7 +16,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
   late Animation<Offset> _slideAnimation;
 
   bool _isLogin = true;
-  bool _isLoading = false; // Added loading state
+  bool _isLoading = false; // Menambahkan status loading
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -55,7 +55,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
   }
 
   void _showErrorSnackbar(String message) {
-    if (!mounted) return; // Add mounted check
+    if (!mounted) return; // Tambahkan pemeriksaan mounted
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -73,16 +73,16 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         email: _emailController.text,
         password: _passwordController.text,
       );
-      if (!mounted) return; // Add mounted check
-      // Navigate to dashboard on success
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      // Navigasi ke dashboard saat berhasil
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      if (!mounted) return; // Add mounted check
-      _showErrorSnackbar('Failed to sign in: ${e.message}');
+      // Tangani kesalahan (misalnya, tampilkan snackbar)
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      _showErrorSnackbar('Gagal masuk: ${e.message}');
     } finally {
       if (mounted) {
-        // Check mounted before setState
+        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -95,9 +95,9 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
       _isLoading = true;
     });
     if (_passwordController.text != _confirmPasswordController.text) {
-      // Passwords do not match (e.g., show a snackbar)
-      if (!mounted) return; // Add mounted check
-      _showErrorSnackbar('Passwords do not match');
+      // Kata sandi tidak cocok (misalnya, tampilkan snackbar)
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      _showErrorSnackbar('Kata sandi tidak cocok');
       setState(() {
         _isLoading = false;
       });
@@ -108,16 +108,16 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         email: _emailController.text,
         password: _passwordController.text,
       );
-      if (!mounted) return; // Add mounted check
-      // Navigate to dashboard on success
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      // Navigasi ke dashboard saat berhasil
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      if (!mounted) return; // Add mounted check
-      _showErrorSnackbar('Failed to sign up: ${e.message}');
+      // Tangani kesalahan (misalnya, tampilkan snackbar)
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      _showErrorSnackbar('Gagal mendaftar: ${e.message}');
     } finally {
       if (mounted) {
-        // Check mounted before setState
+        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -132,8 +132,8 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        // The user canceled the sign-in
-        if (!mounted) return; // Add mounted check
+        // Pengguna membatalkan proses masuk
+        if (!mounted) return; // Tambahkan pemeriksaan mounted
         setState(() {
           _isLoading = false;
         });
@@ -145,18 +145,18 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      if (!mounted) return; // Add mounted check
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
       await FirebaseAuth.instance.signInWithCredential(credential);
-      if (!mounted) return; // Add mounted check
-      // Navigate to dashboard on success
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      // Navigasi ke dashboard saat berhasil
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      if (!mounted) return; // Add mounted check
-      _showErrorSnackbar('Failed to sign in with Google: ${e.message}');
+      // Tangani kesalahan (misalnya, tampilkan snackbar)
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      _showErrorSnackbar('Gagal masuk dengan Google: ${e.message}');
     } finally {
       if (mounted) {
-        // Check mounted before setState
+        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -170,16 +170,16 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     });
     try {
       await FirebaseAuth.instance.signInAnonymously();
-      if (!mounted) return; // Add mounted check
-      // Navigate to dashboard on success
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      // Navigasi ke dashboard saat berhasil
       Navigator.pushReplacementNamed(context, '/dashboard');
     } on FirebaseAuthException catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      if (!mounted) return; // Add mounted check
-      _showErrorSnackbar('Failed to sign in anonymously: ${e.message}');
+      // Tangani kesalahan (misalnya, tampilkan snackbar)
+      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      _showErrorSnackbar('Gagal masuk secara anonim: ${e.message}');
     } finally {
       if (mounted) {
-        // Check mounted before setState
+        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -199,7 +199,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
             child: SlideTransition(
               position: _slideAnimation,
               child: Stack(
-                // Added Stack for loading indicator
+                // Menambahkan Stack untuk indikator loading
                 alignment: Alignment.center,
                 children: [
                   Column(
@@ -307,7 +307,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                         ),
                         icon: const Icon(
                           Icons
-                              .g_mobiledata, // Using a Google-like icon from Material Icons
+                              .g_mobiledata, // Menggunakan ikon seperti Google dari Material Icons
                           size: 24.0,
                           color: Colors.red,
                         ),
@@ -334,7 +334,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                       ),
                     ],
                   ),
-                  if (_isLoading) // Show loading indicator when isLoading is true
+                  if (_isLoading) // Tampilkan indikator loading saat isLoading bernilai true
                     const CircularProgressIndicator(),
                 ],
               ),

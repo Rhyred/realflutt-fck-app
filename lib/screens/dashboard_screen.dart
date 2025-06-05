@@ -32,11 +32,11 @@ class DashboardScreenState extends State<DashboardScreen> {
 
           final data = snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
           if (data == null) {
-            return const Center(child: Text('No parking data available.'));
+            return const Center(child: Text('Tidak ada data parkir tersedia.'));
           }
 
-          // Assuming parking_slots in Firebase is a map like { 'slot1': true, 'slot2': false, ... }
-          // where true means occupied/booked and false means available.
+          // Asumsi parking_slots di Firebase adalah map seperti { 'slot1': true, 'slot2': false, ... }
+          // di mana true berarti terisi/dipesan dan false berarti tersedia.
           final parkingSlots = data.entries.toList();
 
           return Padding(
@@ -65,18 +65,18 @@ class DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildParkingSlot(String slotNumber, bool isOccupied) {
     final color = isOccupied ? Colors.red : Colors.green;
-    final statusText = isOccupied ? 'Occupied' : 'Available';
+    final statusText = isOccupied ? 'Terisi' : 'Tersedia';
 
     return GestureDetector(
       onTap: () {
-        // Navigate to booking confirmation screen
+        // Navigasi ke layar konfirmasi pemesanan
         Navigator.pushNamed(
           context,
           '/booking_confirmation',
           arguments: {
             'slotNumber': slotNumber,
             'bookingTime': DateTime.now(),
-            'userType': 'Registered', // TODO: Determine actual user type
+            'userType': 'Registered', // TODO: Tentukan tipe pengguna sebenarnya
           },
         );
       },
