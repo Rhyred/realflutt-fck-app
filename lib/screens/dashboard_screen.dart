@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:smart_parking_app/services/parking_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -10,8 +13,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class DashboardScreenState extends State<DashboardScreen> {
-  final DatabaseReference _parkingSlotsRef =
-      FirebaseDatabase.instance.ref('parking_slots');
+  final ParkingService _parkingService = ParkingService();
+  final List<String> _slotNumbers = ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4'];
 
   @override
   Widget build(BuildContext context) {
@@ -24,52 +27,44 @@ class DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
-      body: StreamBuilder(
-        stream: _parkingSlotsRef.onValue,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16.0,
+            mainAxisSpacing: 16.0,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: _slotNumbers.length,
+          itemBuilder: (context, index) {
+            final slotNumber = _slotNumbers[index];
 
-          final data = snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
-          if (data == null) {
-            return const Center(child: Text('Tidak ada data parkir tersedia.'));
-          }
+            return FutureBuilder<bool>(
+              future: _parkingService.getParkingSlotStatusFromESP32(slotNumber),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          // Asumsi parking_slots di Firebase adalah map seperti { 'slot1': true, 'slot2': false, ... }
-          // di mana true berarti terisi/dipesan dan false berarti tersedia.
-          final parkingSlots = data.entries.toList();
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                childAspectRatio: 1.0,
-              ),
-              itemCount: parkingSlots.length,
-              itemBuilder: (context, index) {
-                final slotEntry = parkingSlots[index];
-                final slotNumber = slotEntry.key as String;
-                final isOccupied = slotEntry.value as bool;
+                final isOccupied = snapshot.data ?? false;
 
                 return _buildParkingSlot(slotNumber, isOccupied, userType);
               },
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildParkingSlot(
       String slotNumber, bool isOccupied, String userType) {
-    final color = isOccupied ? Colors.red : Colors.green;
+    final color = isOccupied ? Colors.redAccent : Colors.greenAccent;
     final statusText = isOccupied ? 'Terisi' : 'Tersedia';
 
     return GestureDetector(
@@ -84,11 +79,22 @@ class DashboardScreenState extends State<DashboardScreen> {
             'userType': userType,
           },
         );
+
+        // Catat penggunaan slot parkir
+        _logParkingSlotUsage(slotNumber);
       },
       child: Container(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -96,16 +102,22 @@ class DashboardScreenState extends State<DashboardScreen> {
             Text(
               slotNumber,
               style: const TextStyle(
-                fontSize: 24.0,
+                fontSize: 28.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             const SizedBox(height: 8.0),
+            Icon(
+              isOccupied ? FontAwesomeIcons.car : FontAwesomeIcons.squareParking,
+              size: 40.0,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 8.0),
             Text(
               statusText,
               style: const TextStyle(
-                fontSize: 16.0,
+                fontSize: 18.0,
                 color: Colors.white,
               ),
             ),
@@ -113,5 +125,23 @@ class DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _logParkingSlotUsage(String slotNumber) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userId = user?.uid ?? 'guest';
+    final usageRef = FirebaseDatabase.instance
+        .ref('parking_slot_usage')
+        .child(slotNumber)
+        .child(userId)
+        .push();
+
+    final now = DateTime.now();
+    final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    final formattedTimestamp = formatter.format(now);
+
+    usageRef.set({
+      'timestamp': formattedTimestamp,
+    });
   }
 }

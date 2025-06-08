@@ -1,0 +1,43 @@
+Langkah-langkah Integrasi Firebase:
+
+1.  Buat proyek di Firebase Console ([https://console.firebase.google.com/](https://console.firebase.google.com/)).
+2.  Tambahkan aplikasi Flutter ke proyek Firebase Anda.
+3.  Unduh file `google-services.json` (untuk Android) dan `GoogleService-Info.plist` (untuk iOS) dan tambahkan ke direktori yang sesuai di proyek Flutter Anda.
+4.  Tambahkan dependensi Firebase ke `pubspec.yaml`:
+
+    ```yaml
+    dependencies:
+      firebase_core: ^2.15.1
+      firebase_auth: ^4.7.3
+      firebase_database: ^10.2.5
+      firebase_storage: ^11.6.0
+      google_sign_in: ^6.1.5
+    ```
+5.  Jalankan `flutter pub get` untuk menginstal dependensi.
+6.  Konfigurasi Firebase di kode Flutter Anda:
+
+    ```dart
+    import 'package:firebase_core/firebase_core.dart';
+    import 'firebase_options.dart';
+
+    void main() async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      runApp(MyApp());
+    }
+    ```
+7.  Buat file `firebase_options.dart` menggunakan `flutterfire configure`.
+8.  Gunakan layanan Firebase di aplikasi Anda. Contoh:
+
+    ```dart
+    import 'package:firebase_auth/firebase_auth.dart';
+
+    FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: 'email@example.com',
+      password: 'password',
+    );
+    ```
+
+Catatan: Pastikan Anda telah mengaktifkan layanan Firebase yang ingin Anda gunakan (misalnya, Authentication, Realtime Database, Storage) di Firebase Console.
