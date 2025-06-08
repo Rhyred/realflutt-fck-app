@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Ini akan dibuat oleh flutterfire configure
+import 'firebase_options.dart'; // Ini akan dibuat oleh flutterfire configure (Dibuat oleh flutterfire configure)
 
 import 'package:smart_parking_app/screens/login_signup_screen.dart';
 import 'package:smart_parking_app/screens/dashboard_screen.dart';
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart Parking App',
+      title: 'Aplikasi Parkir Pintar',
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.black,
@@ -82,7 +82,7 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
           if (args == null) {
-            // Tangani kasus di mana argumen tidak disediakan
+            // Tangani kasus di mana argumen tidak disediakan.
             return const Scaffold(
               body: Center(
                 child: Text('Error: Detail pemesanan tidak disediakan.'),
@@ -99,7 +99,7 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
           if (args == null || !args.containsKey('userType')) {
-            // Tangani kasus di mana argumen tidak disediakan atau userType hilang
+            // Tangani kasus di mana argumen tidak disediakan atau userType hilang.
             return const Scaffold(
               body: Center(
                 child: Text(
