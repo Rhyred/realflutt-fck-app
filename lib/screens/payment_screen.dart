@@ -124,7 +124,7 @@ class PaymentScreenState extends State<PaymentScreen>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        backgroundColor: Colors.red,
+                        backgroundColor: Colors.indigo,
                         foregroundColor: Colors.white,
                       ),
                       child:

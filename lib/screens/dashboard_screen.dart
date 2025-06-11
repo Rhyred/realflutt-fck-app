@@ -40,8 +40,8 @@ class DashboardScreenState extends State<DashboardScreen> {
           itemBuilder: (context, index) {
             final slotNumber = _slotNumbers[index];
 
-            return FutureBuilder<bool>(
-              future: _parkingService.getParkingSlotStatusFromESP32(slotNumber),
+            return StreamBuilder<bool>(
+              stream: _parkingService.streamParkingSlotStatus(slotNumber),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -64,7 +64,7 @@ class DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildParkingSlot(
       String slotNumber, bool isOccupied, String userType) {
-    final color = isOccupied ? Colors.redAccent : Colors.greenAccent;
+    final color = isOccupied ? Colors.indigoAccent : Colors.green;
     final statusText = isOccupied ? 'Terisi' : 'Tersedia';
 
     return GestureDetector(

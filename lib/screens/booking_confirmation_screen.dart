@@ -114,7 +114,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
                 ),
                 child: _isLoading // Tampilkan indikator loading di tombol

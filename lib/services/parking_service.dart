@@ -17,10 +17,27 @@ class ParkingService {
   // Anda dapat menambahkan metode lain di sini untuk berinteraksi dengan data parkir
   // contoh: mendapatkan status slot tunggal, mendengarkan perubahan untuk slot tertentu, dll.
 
-  // Metode placeholder untuk mendapatkan status slot parkir dari ESP32
-  Future<bool> getParkingSlotStatusFromESP32(String slotNumber) async {
-    // TODO: Implementasikan logika untuk mendapatkan status dari ESP32
-    // Ini hanya placeholder, Anda perlu menggantinya dengan implementasi yang sebenarnya
-    return false; // Secara default, anggap slot kosong
+  // Mendapatkan status slot parkir dari Firebase
+  Future<bool> getParkingSlotStatus(String slotNumber) async {
+    try {
+      final snapshot = await _parkingSlotsRef.child(slotNumber).get();
+      if (snapshot.exists) {
+        return snapshot.value as bool;
+      }
+      return false; // Default jika tidak ada data
+    } catch (e) {
+      // Tangani kesalahan
+      return false;
+    }
+  }
+
+  // Mendengarkan perubahan status slot parkir secara real-time
+  Stream<bool> streamParkingSlotStatus(String slotNumber) {
+    return _parkingSlotsRef.child(slotNumber).onValue.map((event) {
+      if (event.snapshot.exists) {
+        return event.snapshot.value as bool;
+      }
+      return false;
+    });
   }
 }

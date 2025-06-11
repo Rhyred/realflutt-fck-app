@@ -25,16 +25,16 @@ class MyApp extends StatelessWidget {
       title: 'Aplikasi beuki lieur',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.black,
-        scaffoldBackgroundColor: Colors.black,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
+        primaryColor: Colors.indigo,
+        scaffoldBackgroundColor: Colors.grey[900],
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey[800],
           foregroundColor: Colors.white,
         ),
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.red,
-          secondary: Colors.white,
-          surface: Colors.black,
+        colorScheme: ColorScheme.dark(
+          primary: Colors.indigo,
+          secondary: Colors.amber,
+          surface: Colors.grey[800]!,
           onPrimary: Colors.white,
           onSecondary: Colors.black,
           onSurface: Colors.white,
@@ -59,18 +59,18 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(color: Colors.white),
         ),
         buttonTheme: const ButtonThemeData(
-          buttonColor: Colors.red,
+          buttonColor: Colors.indigo,
           textTheme: ButtonTextTheme.primary,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.indigo,
             foregroundColor: Colors.white,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: Colors.red,
+            foregroundColor: Colors.amber,
           ),
         ),
       ),

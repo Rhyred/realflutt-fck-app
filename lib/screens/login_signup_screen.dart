@@ -306,10 +306,9 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                           foregroundColor: Colors.black87,
                         ),
                         icon: const Icon(
-                          Icons
-                              .g_mobiledata, // Menggunakan ikon seperti Google dari Material Icons
+                          Icons.g_mobiledata,
                           size: 24.0,
-                          color: Colors.red,
+                          color: Colors.indigo,
                         ),
                         label: const Text(
                           'Sign in with Google',
@@ -324,7 +323,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
-                          backgroundColor: Colors.grey,
+                          backgroundColor: Colors.grey[700],
                           foregroundColor: Colors.white,
                         ),
                         child: const Text(
@@ -343,7 +342,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Colors.indigo,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text(

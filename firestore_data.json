@@ -1,0 +1,74 @@
+{
+    "users": {
+        "user123": {
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone": "+628123456789",
+            "car_plate": "B 1234 ABC",
+            "created_at": {
+                "__datatype__": "Timestamp",
+                "value": "2024-01-15T10:00:00Z"
+            }
+        },
+        "user456": {
+            "name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "phone": "+628129876543",
+            "car_plate": "D 5678 XYZ",
+            "created_at": {
+                "__datatype__": "Timestamp",
+                "value": "2024-02-20T11:30:00Z"
+            }
+        }
+    },
+    "parking_spots": {
+        "spotA1": {
+            "location": "Level 1, Section A, Spot 1",
+            "is_occupied": false,
+            "price_per_hour": 5000,
+            "type": "regular"
+        },
+        "spotB2": {
+            "location": "Level 1, Section B, Spot 2",
+            "is_occupied": true,
+            "price_per_hour": 7500,
+            "type": "premium"
+        },
+        "spotC3": {
+            "location": "Level 2, Section C, Spot 3",
+            "is_occupied": false,
+            "price_per_hour": 5000,
+            "type": "regular"
+        }
+    },
+    "bookings": {
+        "booking001": {
+            "user_id": "user123",
+            "spot_id": "spotB2",
+            "start_time": {
+                "__datatype__": "Timestamp",
+                "value": "2024-06-10T09:00:00Z"
+            },
+            "end_time": {
+                "__datatype__": "Timestamp",
+                "value": "2024-06-10T11:00:00Z"
+            },
+            "total_cost": 15000,
+            "status": "completed"
+        },
+        "booking002": {
+            "user_id": "user456",
+            "spot_id": "spotA1",
+            "start_time": {
+                "__datatype__": "Timestamp",
+                "value": "2024-06-11T14:00:00Z"
+            },
+            "end_time": {
+                "__datatype__": "Timestamp",
+                "value": "2024-06-11T16:00:00Z"
+            },
+            "total_cost": 10000,
+            "status": "active"
+        }
+    }
+}
