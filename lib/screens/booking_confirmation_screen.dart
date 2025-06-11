@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:smart_parking_app/services/parking_service.dart';
+// Import intl untuk formatting tanggal jika diperlukan
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:uuid/uuid.dart'; // Import UUID package
 
 class BookingConfirmationScreen extends StatefulWidget {
   final String slotNumber;
-  final DateTime bookingTime;
+  final DateTime startTime; // Mengganti bookingTime menjadi startTime
+  final DateTime endTime; // Menambahkan endTime
   final String userType; // 'Registered' atau 'Guest'
 
   const BookingConfirmationScreen({
     super.key,
     required this.slotNumber,
-    required this.bookingTime,
+    required this.startTime,
+    required this.endTime,
     required this.userType,
   });
 
@@ -19,115 +25,213 @@ class BookingConfirmationScreen extends StatefulWidget {
 }
 
 class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
-  bool _isLoading = false; // Menambahkan status loading
+  bool _isLoading = false;
+  final ParkingService _parkingService = ParkingService();
+  // Tambahkan TextEditingController jika ingin input vehiclePlate
+  // final TextEditingController _vehiclePlateController = TextEditingController();
 
-  void _showErrorSnackbar(String message) {
+  void _showSnackbar(String message, {bool isError = false}) {
+    if (!mounted) return; // Check if the widget is still in the tree
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: isError ? Colors.red : Colors.green,
       ),
     );
   }
 
   Future<void> _confirmBooking() async {
-    if (widget.userType == 'Guest') {
-      Navigator.pushNamed(
-        context,
-        '/payment',
-        arguments: {'userType': widget.userType},
-      );
-    } else {
-      // Implementasikan logika pemesanan untuk pengguna terdaftar menggunakan ParkingService
-      setState(() {
-        _isLoading = true;
-      });
-      ParkingService()
-          .updateParkingSlotStatus(widget.slotNumber, true)
-          .then((_) {
-        // Pemesanan dikonfirmasi
+    setState(() {
+      _isLoading = true;
+    });
+
+    String? actualUserId;
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    final uuid = Uuid(); // Membuat instance Uuid, hilangkan const
+
+    if (widget.userType == 'Registered') {
+      if (currentUser != null) {
+        actualUserId = currentUser.uid;
+      } else {
         if (mounted) {
-          Navigator.popUntil(
-              context,
-              ModalRoute.withName(
-                  '/dashboard')); // Navigasi kembali ke dashboard
+          _showSnackbar('Sesi tidak valid. Silakan login kembali.',
+              isError: true);
+          setState(() {
+            _isLoading = false;
+          });
+          Navigator.pushNamedAndRemoveUntil(
+              context, '/login', (route) => false);
         }
-      }).catchError((error) {
-        // Tangani kesalahan saat memperbarui Firebase
-        _showErrorSnackbar('Gagal mengonfirmasi pemesanan: $error');
-      }).whenComplete(() {
+        return;
+      }
+    } else {
+      // Guest User
+      actualUserId = 'guest_${uuid.v4()}'; // Menghasilkan UUID v4 untuk tamu
+    }
+
+    if (actualUserId == null) {
+      // Pemeriksaan tambahan jika ada alur logika yang terlewat
+      if (mounted) {
+        _showSnackbar('Tidak dapat menentukan ID pengguna.', isError: true);
         setState(() {
           _isLoading = false;
         });
-      });
+      }
+      return;
+    }
+
+    // Contoh plat nomor, bisa diambil dari _vehiclePlateController.text jika ada input field
+    String vehiclePlate =
+        "B1234XYZ"; // Anda bisa menambahkan input field untuk ini
+
+    Map<String, dynamic> bookingData = {
+      'userId': actualUserId, // Menggunakan actualUserId
+      'slotId': widget.slotNumber,
+      'startTime': widget.startTime.toIso8601String(),
+      'endTime': widget.endTime.toIso8601String(),
+      'status': widget.userType == 'Guest' ? 'pending_payment' : 'confirmed',
+      'vehiclePlate': vehiclePlate,
+      'createdAt': DateTime.now()
+          .toIso8601String(), // Tambahkan timestamp pembuatan booking
+    };
+
+    try {
+      String? bookingId = await _parkingService.createBooking(bookingData);
+      if (!mounted) return;
+
+      if (bookingId != null) {
+        _showSnackbar('Booking berhasil dikonfirmasi dengan ID: $bookingId');
+        if (widget.userType == 'Guest') {
+          // Navigasi ke pembayaran dengan membawa bookingId jika perlu
+          Navigator.pushNamed(
+            context,
+            '/payment',
+            arguments: {
+              'userType': widget.userType,
+              'bookingId': bookingId,
+              'slotId': widget.slotNumber
+            },
+          );
+        } else {
+          // Navigasi kembali ke dashboard untuk pengguna terdaftar
+          Navigator.popUntil(context, ModalRoute.withName('/dashboard'));
+        }
+      } else {
+        _showSnackbar(
+            'Gagal membuat booking. Slot mungkin tidak tersedia atau terjadi kesalahan.',
+            isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackbar('Terjadi kesalahan: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Format tanggal dan waktu agar lebih mudah dibaca
+    final DateFormat dateTimeFormatter = DateFormat('dd MMM yyyy, HH:mm');
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Booking Confirmation'),
+        title: const Text('Konfirmasi Booking'),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Booking Details',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 24.0),
-            _buildDetailRow('Slot Number:', widget.slotNumber),
-            const SizedBox(height: 16.0),
-            _buildDetailRow('Booking Time:',
-                widget.bookingTime.toString()), // Format ini nanti
-            const SizedBox(height: 16.0),
-            _buildDetailRow('User Type:', widget.userType),
-            const SizedBox(height: 24.0),
-            if (widget.userType == 'Registered')
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               const Text(
-                'Please show your ID Card upon arrival.',
-                style: TextStyle(fontSize: 18.0, color: Colors.white70),
-              ),
-            if (widget.userType == 'Guest')
-              const Text(
-                'Payment is required via QRIS.',
-                style: TextStyle(fontSize: 18.0, color: Colors.white70),
-              ),
-            const SizedBox(height: 40.0),
-            Center(
-              child: ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : _confirmBooking, // Nonaktifkan tombol saat loading
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 40.0, vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
+                'Detail Booking',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                child: _isLoading // Tampilkan indikator loading di tombol
-                    ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
-                    : const Text(
-                        'Confirm Booking',
-                        style: TextStyle(fontSize: 18.0),
-                      ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24.0),
+              _buildDetailRow('Nomor Slot:', widget.slotNumber),
+              const SizedBox(height: 16.0),
+              _buildDetailRow(
+                  'Waktu Mulai:', dateTimeFormatter.format(widget.startTime)),
+              const SizedBox(height: 16.0),
+              _buildDetailRow(
+                  'Waktu Selesai:', dateTimeFormatter.format(widget.endTime)),
+              const SizedBox(height: 16.0),
+              _buildDetailRow('Tipe Pengguna:', widget.userType),
+              const SizedBox(height: 24.0),
+              // Jika ingin input plat nomor:
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(vertical: 8.0),
+              //   child: TextFormField(
+              //     // controller: _vehiclePlateController,
+              //     style: const TextStyle(color: Colors.white),
+              //     decoration: const InputDecoration(
+              //       labelText: 'Plat Nomor Kendaraan (Opsional)',
+              //       labelStyle: TextStyle(color: Colors.white70),
+              //       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+              //       focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.indigo)),
+              //       hintText: 'Contoh: B 1234 XYZ',
+              //       hintStyle: TextStyle(color: Colors.white30),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(height: 16.0), // Sesuaikan spacing jika ada input plat
+              if (widget.userType == 'Registered')
+                const Text(
+                  'Mohon tunjukkan kartu identitas Anda saat tiba.',
+                  style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.white70), // Ukuran font disesuaikan
+                ),
+              if (widget.userType == 'Guest')
+                const Text(
+                  'Pembayaran diperlukan melalui QRIS.',
+                  style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.white70), // Ukuran font disesuaikan
+                ),
+              const SizedBox(height: 40.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _confirmBooking,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40.0, vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          // Indikator loading lebih rapi
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : const Text(
+                          'Konfirmasi Booking', // Teks disesuaikan
+                          style: TextStyle(fontSize: 18.0),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -145,11 +249,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             color: Colors.white,
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18.0,
-            color: Colors.white70,
+        Expanded(
+          // Tambahkan Expanded agar value tidak overflow jika panjang
+          child: Text(
+            value,
+            textAlign: TextAlign.end, // Ratakan teks value ke kanan
+            style: const TextStyle(
+              fontSize: 18.0,
+              color: Colors.white70,
+            ),
+            overflow: TextOverflow.ellipsis, // Cegah overflow dengan ellipsis
           ),
         ),
       ],

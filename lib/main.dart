@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplikasi beuki lieur',
+      title: 'Aplikasi Parkir Cerdas', // Judul disesuaikan
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.indigo,
@@ -82,16 +82,28 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
           if (args == null) {
-            // Tangani kasus di mana argumen tidak disediakan.
             return const Scaffold(
               body: Center(
                 child: Text('Error: Detail pemesanan tidak disediakan.'),
               ),
             );
           }
+          // Pastikan argumen yang diterima sekarang adalah startTime dan endTime
+          if (args['slotNumber'] == null ||
+              args['startTime'] == null ||
+              args['endTime'] == null ||
+              args['userType'] == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text(
+                    'Error: Detail pemesanan tidak lengkap (slot, waktu mulai/selesai, atau tipe pengguna).'),
+              ),
+            );
+          }
           return BookingConfirmationScreen(
             slotNumber: args['slotNumber'] as String,
-            bookingTime: args['bookingTime'] as DateTime,
+            startTime: args['startTime'] as DateTime, // Menggunakan startTime
+            endTime: args['endTime'] as DateTime, // Menggunakan endTime
             userType: args['userType'] as String,
           );
         },
@@ -99,7 +111,6 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
           if (args == null || !args.containsKey('userType')) {
-            // Tangani kasus di mana argumen tidak disediakan atau userType hilang.
             return const Scaffold(
               body: Center(
                 child: Text(
@@ -107,8 +118,11 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
+          // Anda mungkin juga ingin meneruskan bookingId atau detail lain ke PaymentScreen
           return PaymentScreen(
             userType: args['userType'] as String,
+            // bookingId: args['bookingId'] as String?, // Contoh jika PaymentScreen memerlukan bookingId
+            // slotId: args['slotId'] as String?, // Contoh
           );
         },
         '/about': (context) => const AboutScreen(),
