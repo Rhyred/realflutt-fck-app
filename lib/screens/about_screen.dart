@@ -6,43 +6,41 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // AppBar dan backgroundColor akan mengambil dari tema
       appBar: AppBar(
         title: const Text('Tentang Aplikasi'),
-        backgroundColor: Colors.black, // Sesuaikan dengan tema
-        automaticallyImplyLeading:
-            false, // Sembunyikan tombol kembali jika ini adalah tab utama
+        automaticallyImplyLeading: false,
       ),
-      backgroundColor: Colors.black, // Sesuaikan dengan tema
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Padding(
+        // Padding tetap, const bisa dihilangkan jika child tidak const
+        padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 'Smart Parking App',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary, // Warna primary untuk judul
+                    ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               Text(
                 'Versi 1.0.0', // Contoh versi
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white70,
-                ),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge, // Menggunakan style dari tema
               ),
-              SizedBox(height: 8.0),
+              const SizedBox(height: 8.0),
               Text(
                 'Dibuat untuk mempermudah pencarian dan pemesanan tempat parkir.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white70,
-                ),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium, // Menggunakan style dari tema
               ),
               // Anda bisa menambahkan informasi lain di sini
             ],

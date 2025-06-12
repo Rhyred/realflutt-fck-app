@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:smart_parking_app/screens/dashboard_screen.dart';
 import 'package:smart_parking_app/screens/account_settings_screen.dart';
 import 'package:smart_parking_app/screens/about_screen.dart';
+import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final ThemeNotifier themeNotifier;
+
+  const MainNavigationScreen({super.key, required this.themeNotifier});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -12,12 +15,18 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
+  late List<Widget> _widgetOptions;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    DashboardScreen(),
-    AccountSettingsScreen(),
-    AboutScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      const DashboardScreen(),
+      AccountSettingsScreen(
+          themeNotifier: widget.themeNotifier), // Teruskan notifier
+      const AboutScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

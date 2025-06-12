@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 // import 'package:smart_parking_app/screens/dashboard_screen.dart'; // Tidak lagi langsung ke dashboard
 import 'package:smart_parking_app/screens/login_signup_screen.dart';
 import 'package:smart_parking_app/screens/main_navigation_screen.dart'; // Import MainNavigationScreen
+import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
 
 class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
+  final ThemeNotifier themeNotifier;
+
+  const AuthWrapper({super.key, required this.themeNotifier});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +18,8 @@ class AuthWrapper extends StatelessWidget {
         // User is logged in
         if (snapshot.connectionState == ConnectionState.active) {
           if (snapshot.hasData) {
-            return const MainNavigationScreen(); // Arahkan ke MainNavigationScreen
+            return MainNavigationScreen(
+                themeNotifier: themeNotifier); // Teruskan notifier
           }
           // User is not logged in
           return const LoginSignupScreen();

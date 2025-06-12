@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Untuk ikon Google
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
@@ -16,7 +17,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
   late Animation<Offset> _slideAnimation;
 
   bool _isLogin = true;
-  bool _isLoading = false; // Menambahkan status loading
+  bool _isLoading = false;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -35,7 +36,6 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
-
     _controller.forward();
   }
 
@@ -55,11 +55,11 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
   }
 
   void _showErrorSnackbar(String message) {
-    if (!mounted) return; // Tambahkan pemeriksaan mounted
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
   }
@@ -70,19 +70,16 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     });
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
-      // Navigasi ke dashboard saat berhasil
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      if (!mounted) return;
+      // Navigasi akan ditangani oleh AuthWrapper
     } on FirebaseAuthException catch (e) {
-      // Tangani kesalahan (misalnya, tampilkan snackbar)
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       _showErrorSnackbar('Gagal masuk: ${e.message}');
     } finally {
       if (mounted) {
-        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -95,8 +92,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
       _isLoading = true;
     });
     if (_passwordController.text != _confirmPasswordController.text) {
-      // Kata sandi tidak cocok (misalnya, tampilkan snackbar)
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       _showErrorSnackbar('Kata sandi tidak cocok');
       setState(() {
         _isLoading = false;
@@ -105,19 +101,16 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     }
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
-      // Navigasi ke dashboard saat berhasil
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      if (!mounted) return;
+      // Navigasi akan ditangani oleh AuthWrapper
     } on FirebaseAuthException catch (e) {
-      // Tangani kesalahan (misalnya, tampilkan snackbar)
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       _showErrorSnackbar('Gagal mendaftar: ${e.message}');
     } finally {
       if (mounted) {
-        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -132,8 +125,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        // Pengguna membatalkan proses masuk
-        if (!mounted) return; // Tambahkan pemeriksaan mounted
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
@@ -145,18 +137,14 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       await FirebaseAuth.instance.signInWithCredential(credential);
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
-      // Navigasi ke dashboard saat berhasil
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      // Navigasi akan ditangani oleh AuthWrapper
     } on FirebaseAuthException catch (e) {
-      // Tangani kesalahan (misalnya, tampilkan snackbar)
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       _showErrorSnackbar('Gagal masuk dengan Google: ${e.message}');
     } finally {
       if (mounted) {
-        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -170,16 +158,12 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
     });
     try {
       await FirebaseAuth.instance.signInAnonymously();
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
-      // Navigasi ke dashboard saat berhasil
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      // Navigasi akan ditangani oleh AuthWrapper
     } on FirebaseAuthException catch (e) {
-      // Tangani kesalahan (misalnya, tampilkan snackbar)
-      if (!mounted) return; // Tambahkan pemeriksaan mounted
+      if (!mounted) return;
       _showErrorSnackbar('Gagal masuk secara anonim: ${e.message}');
     } finally {
       if (mounted) {
-        // Periksa mounted sebelum setState
         setState(() {
           _isLoading = false;
         });
@@ -189,8 +173,11 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Hapus navigasi manual ke /dashboard karena AuthWrapper yang akan menangani
+    // setelah state auth berubah.
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      // backgroundColor diatur oleh ThemeData -> scaffoldBackgroundColor
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -199,7 +186,6 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
             child: SlideTransition(
               position: _slideAnimation,
               child: Stack(
-                // Menambahkan Stack untuk indikator loading
                 alignment: Alignment.center,
                 children: [
                   Column(
@@ -209,76 +195,48 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                       Text(
                         _isLogin ? 'Welcome Back!' : 'Create Account',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 32.0,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary, // Warna dari tema
                         ),
                       ),
                       const SizedBox(height: 40.0),
                       TextField(
                         controller: _emailController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
+                          // Menggunakan InputDecorationTheme
                           labelText: 'Email',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          filled: true,
-                          fillColor: Colors.white.withAlpha(25),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide.none,
-                          ),
                         ),
-                        style: const TextStyle(color: Colors.white),
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 16.0),
                       TextField(
                         controller: _passwordController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'Password',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          filled: true,
-                          fillColor: Colors.white.withAlpha(25),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide.none,
-                          ),
                         ),
-                        style: const TextStyle(color: Colors.white),
                         obscureText: true,
                       ),
                       const SizedBox(height: 16.0),
                       if (!_isLogin)
                         TextField(
                           controller: _confirmPasswordController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Confirm Password',
-                            labelStyle: const TextStyle(color: Colors.white70),
-                            filled: true,
-                            fillColor: Colors.white.withAlpha(25),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide.none,
-                            ),
                           ),
-                          style: const TextStyle(color: Colors.white),
                           obscureText: true,
                         ),
                       const SizedBox(height: 24.0),
                       ElevatedButton(
+                        // Style dari elevatedButtonTheme
                         onPressed: _isLoading
                             ? null
                             : (_isLogin
                                 ? _signInWithEmailPassword
                                 : _signUpWithEmailPassword),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                        ),
                         child: Text(
                           _isLogin ? 'Login' : 'Sign Up',
                           style: const TextStyle(fontSize: 18.0),
@@ -286,46 +244,42 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                       ),
                       const SizedBox(height: 16.0),
                       TextButton(
+                        // Style dari textButtonTheme
                         onPressed: _isLoading ? null : _toggleForm,
                         child: Text(
                           _isLogin
                               ? 'Don\'t have an account? Sign Up'
                               : 'Already have an account? Login',
-                          style: const TextStyle(color: Colors.white70),
                         ),
                       ),
                       const SizedBox(height: 24.0),
                       ElevatedButton.icon(
                         onPressed: _isLoading ? null : _signInWithGoogle,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
+                          backgroundColor: Colors.white, // Background putih
+                          foregroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary, // Teks ungu
+                          side: BorderSide(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary), // Border ungu
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12.0), // Padding disesuaikan
                         ),
-                        icon: const Icon(
-                          Icons.g_mobiledata,
-                          size: 24.0,
-                          color: Colors.indigo,
-                        ),
+                        icon: FaIcon(FontAwesomeIcons.google,
+                            color: Theme.of(context).colorScheme.primary),
                         label: const Text(
                           'Sign in with Google',
-                          style: TextStyle(fontSize: 18.0),
+                          style: TextStyle(
+                              fontSize: 16.0), // Ukuran font disesuaikan
                         ),
                       ),
                       const SizedBox(height: 16.0),
-                      ElevatedButton(
+                      OutlinedButton(
+                        // Menggunakan OutlinedButton
                         onPressed: _isLoading ? null : _signInAnonymously,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          backgroundColor: Colors.grey[700],
-                          foregroundColor: Colors.white,
-                        ),
+                        // Style dari outlinedButtonTheme
                         child: const Text(
                           'Continue as Guest',
                           style: TextStyle(fontSize: 18.0),
@@ -333,8 +287,11 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                       ),
                     ],
                   ),
-                  if (_isLoading) // Tampilkan indikator loading saat isLoading bernilai true
-                    const CircularProgressIndicator(),
+                  if (_isLoading)
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary),
+                    ),
                 ],
               ),
             ),

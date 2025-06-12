@@ -10,80 +10,219 @@ import 'package:smart_parking_app/screens/about_screen.dart';
 import 'package:smart_parking_app/screens/auth_wrapper.dart'; // Import AuthWrapper
 import 'package:smart_parking_app/screens/account_settings_screen.dart'; // Import AccountSettingsScreen
 import 'package:smart_parking_app/screens/main_navigation_screen.dart'; // Import MainNavigationScreen
+import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+      const MyApp()); // Tambahkan kembali const karena constructor MyApp sudah const
 }
 
-class MyApp extends StatelessWidget {
+// Untuk menyediakan ThemeNotifier, kita bisa menggunakan Provider package,
+// atau InheritedWidget, atau meneruskannya.
+// Untuk kesederhanaan awal, kita akan buat MyApp StatefulWidget dan kelola notifier di sana.
+// Kemudian kita akan lihat cara terbaik untuk mengaksesnya dari AccountSettingsScreen.
+
+class MyApp extends StatefulWidget {
+  // Tambahkan const jika tidak ada parameter yang mencegahnya
   const MyApp({super.key});
+
+  // Untuk mengakses notifier dari luar jika diperlukan (misalnya dari AccountSettingsScreen)
+  // Ini bukan cara terbaik, lebih baik pakai Provider atau InheritedWidget.
+  // Tapi untuk langkah ini, kita akan coba cara sederhana dulu.
+  // static _MyAppState? of(BuildContext context) => // Dihapus karena _MyAppState private
+  //     context.findAncestorStateOfType<_MyAppState>();
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late ThemeNotifier _themeNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default ke tema terang
+    _themeNotifier = ThemeNotifier(ThemeMode.light);
+    _themeNotifier.addListener(() {
+      if (mounted) {
+        setState(() {
+          // State MyApp perlu di-rebuild untuk memperbarui MaterialApp dengan themeMode baru
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _themeNotifier.dispose();
+    super.dispose();
+  }
+
+  void changeTheme(ThemeMode themeMode) {
+    _themeNotifier.setThemeMode(themeMode);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aplikasi Parkir Cerdas', // Judul disesuaikan
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.indigo,
-        scaffoldBackgroundColor: Colors.grey[900],
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[800],
+    const Color primaryOrange =
+        Color(0xFFFF9800); // Warna Oranye Utama (Material Orange 500)
+
+    final ThemeData lightTheme = ThemeData(
+      brightness: Brightness.light,
+      primaryColor: primaryOrange,
+      scaffoldBackgroundColor: Colors.white,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: primaryOrange,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      colorScheme: const ColorScheme.light(
+        primary: primaryOrange,
+        secondary: Colors.deepOrangeAccent, // Contoh warna sekunder
+        surface: Colors.white,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Colors.black87,
+        error: Colors.redAccent,
+        onError: Colors.white,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: Colors.black87),
+        bodyMedium: TextStyle(color: Colors.black87),
+        titleLarge:
+            TextStyle(color: primaryOrange, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryOrange,
           foregroundColor: Colors.white,
-        ),
-        colorScheme: ColorScheme.dark(
-          primary: Colors.indigo,
-          secondary: Colors.amber,
-          surface: Colors.grey[800]!,
-          onPrimary: Colors.white,
-          onSecondary: Colors.black,
-          onSurface: Colors.white,
-          error: Colors.redAccent,
-          onError: Colors.white,
-        ),
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white),
-          displaySmall: TextStyle(color: Colors.white),
-          headlineLarge: TextStyle(color: Colors.white),
-          headlineMedium: TextStyle(color: Colors.white),
-          headlineSmall: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white),
-          titleSmall: TextStyle(color: Colors.white),
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          bodySmall: TextStyle(color: Colors.white),
-          labelLarge: TextStyle(color: Colors.white),
-          labelMedium: TextStyle(color: Colors.white),
-          labelSmall: TextStyle(color: Colors.white),
-        ),
-        buttonTheme: const ButtonThemeData(
-          buttonColor: Colors.indigo,
-          textTheme: ButtonTextTheme.primary,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.indigo,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.amber,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         ),
       ),
-      // initialRoute: '/login', // Diganti dengan home
-      home: const AuthWrapper(), // Gunakan AuthWrapper sebagai halaman utama
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryOrange,
+          side: const BorderSide(color: primaryOrange, width: 1.5),
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: primaryOrange),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: primaryOrange,
+        unselectedItemColor: Colors.grey,
+        elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.grey[100],
+        labelStyle: const TextStyle(color: Colors.black54),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(color: primaryOrange, width: 1.5),
+        ),
+      ),
+    );
+
+    final ThemeData darkTheme = ThemeData(
+      brightness: Brightness.dark,
+      primaryColor:
+          primaryOrange, // Oranye tetap bisa jadi primary di dark theme
+      scaffoldBackgroundColor: Colors.grey[900], // Background gelap
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[850], // AppBar lebih gelap
+        foregroundColor: primaryOrange, // Teks oranye di AppBar gelap
+        elevation: 0,
+      ),
+      colorScheme: ColorScheme.dark(
+        primary: primaryOrange,
+        secondary: Colors.orangeAccent, // Warna sekunder untuk dark theme
+        surface: Colors.grey[800]!,
+        onPrimary: Colors.black, // Teks hitam di atas tombol oranye
+        onSecondary: Colors.black,
+        onSurface: Colors.white70, // Teks lebih terang di atas surface gelap
+        error: Colors.red,
+        onError: Colors.white,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: Colors.white70),
+        bodyMedium: TextStyle(color: Colors.white70),
+        titleLarge:
+            TextStyle(color: primaryOrange, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryOrange,
+          foregroundColor:
+              Colors.black, // Teks hitam agar kontras di tombol oranye
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryOrange,
+          side: const BorderSide(color: primaryOrange, width: 1.5),
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: primaryOrange),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: Colors.grey[850], // BottomNav lebih gelap
+        selectedItemColor: primaryOrange,
+        unselectedItemColor: Colors.grey[400],
+        elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.grey[800],
+        labelStyle: TextStyle(color: Colors.grey[400]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+          borderSide: const BorderSide(color: primaryOrange, width: 1.5),
+        ),
+      ),
+    );
+
+    // Untuk saat ini, kita akan set default ke lightTheme
+    // Implementasi switch akan ditambahkan kemudian
+    return MaterialApp(
+      title: 'Aplikasi Parkir Cerdas',
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: _themeNotifier.themeMode, // Gunakan themeMode dari notifier
+      home: AuthWrapper(themeNotifier: _themeNotifier), // Teruskan notifier
       routes: {
-        // Rute '/login' dan '/dashboard' masih bisa berguna untuk navigasi eksplisit
-        // jika diperlukan, meskipun AuthWrapper menangani tampilan awal.
         '/login': (context) => const LoginSignupScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        // Modifikasi rute AccountSettingsScreen untuk menerima ThemeNotifier
+        // Ini adalah cara sederhana, Provider/InheritedWidget lebih baik untuk skala besar
+        '/account_settings': (context) =>
+            AccountSettingsScreen(themeNotifier: _themeNotifier),
         '/booking_confirmation': (context) {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;
@@ -132,10 +271,10 @@ class MyApp extends StatelessWidget {
           );
         },
         '/about': (context) => const AboutScreen(),
-        '/account_settings': (context) =>
-            const AccountSettingsScreen(), // Tambahkan rute untuk AccountSettingsScreen
-        '/main_navigation': (context) =>
-            const MainNavigationScreen(), // Tambahkan rute
+        // '/account_settings': (context) => AccountSettingsScreen( // Dihapus karena sudah ada di atas
+        //     themeNotifier: _themeNotifier),
+        '/main_navigation': (context) => MainNavigationScreen(
+            themeNotifier: _themeNotifier), // Teruskan notifier
       },
     );
   }

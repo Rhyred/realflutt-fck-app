@@ -11,7 +11,7 @@ import 'package:smart_parking_app/main.dart';
 void main() {
   testWidgets('App title test', (WidgetTester tester) async {
     // Bangun aplikasi kita dan picu frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const MyApp()); // Tambahkan kembali const
 
     // Verifikasi bahwa judul aplikasi sudah benar
     expect(find.text('Smart Parking App'), findsOneWidget);

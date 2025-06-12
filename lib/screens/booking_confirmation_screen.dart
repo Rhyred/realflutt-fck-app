@@ -124,101 +124,100 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Format tanggal dan waktu agar lebih mudah dibaca
-    final DateFormat dateTimeFormatter = DateFormat('dd MMM yyyy, HH:mm');
+    // final DateFormat dateTimeFormatter = DateFormat('dd MMM yyyy, HH:mm'); // Dihapus karena tidak digunakan
+    final Duration bookingDuration =
+        widget.endTime.difference(widget.startTime);
+    String durationText = '';
+    if (bookingDuration.inHours > 0) {
+      durationText += '${bookingDuration.inHours} jam ';
+    }
+    if (bookingDuration.inMinutes % 60 > 0) {
+      durationText += '${bookingDuration.inMinutes % 60} menit';
+    }
+    if (durationText.isEmpty) {
+      durationText = 'Kurang dari 1 menit';
+    }
+
+    final Color primaryColor = Theme.of(context).colorScheme.primary;
+    // Menggunakan Color.alphaBlend untuk alternatif withOpacity jika ada masalah presisi,
+    // atau cara lain yang direkomendasikan jika .withValues() lebih cocok.
+    // Untuk kesederhanaan, jika .withOpacity() masih berfungsi dan presisi tidak kritis, bisa dipertahankan.
+    // Namun, untuk mengikuti saran lint, kita bisa menggunakan alphaBlend atau membuat warna baru.
+    // Contoh dengan alphaBlend (membutuhkan warna dasar untuk di-blend):
+    // final Color lightPurpleBackground = Color.alphaBlend(primaryColor.withAlpha((255 * 0.1).round()), Colors.white);
+    // Atau cara yang lebih umum dan seringkali cukup:
+    final Color lightPurpleBackground =
+        primaryColor.withAlpha((255 * 0.1).round());
 
     return Scaffold(
+      // AppBar dan backgroundColor akan mengambil dari tema
       appBar: AppBar(
         title: const Text('Konfirmasi Booking'),
-        backgroundColor: Colors.black,
+        // backgroundColor sudah diatur oleh tema
       ),
-      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Detail Booking',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              Text(
+                'Detail Pemesanan', // Sesuai desain "Please confirm your booking details..."
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 20),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Silakan konfirmasi detail pemesanan Anda dan lanjutkan.',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.black54),
               ),
               const SizedBox(height: 24.0),
-              _buildDetailRow('Nomor Slot:', widget.slotNumber),
+              // ID #XXXX (Placeholder atau tampilkan setelah booking berhasil di layar lain)
+              // Untuk saat ini, kita tampilkan detail yang ada
+              _buildDetailRow('Nomor Slot:', widget.slotNumber, context),
               const SizedBox(height: 16.0),
-              _buildDetailRow(
-                  'Waktu Mulai:', dateTimeFormatter.format(widget.startTime)),
+              _buildDetailRow('Tanggal:',
+                  DateFormat('dd MMMM yyyy').format(widget.startTime), context),
               const SizedBox(height: 16.0),
-              _buildDetailRow(
-                  'Waktu Selesai:', dateTimeFormatter.format(widget.endTime)),
+              _buildDetailRow('Waktu Mulai:',
+                  DateFormat('HH:mm').format(widget.startTime), context),
               const SizedBox(height: 16.0),
-              _buildDetailRow('Tipe Pengguna:', widget.userType),
-              const SizedBox(height: 24.0),
-              // Jika ingin input plat nomor:
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //   child: TextFormField(
-              //     // controller: _vehiclePlateController,
-              //     style: const TextStyle(color: Colors.white),
-              //     decoration: const InputDecoration(
-              //       labelText: 'Plat Nomor Kendaraan (Opsional)',
-              //       labelStyle: TextStyle(color: Colors.white70),
-              //       enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
-              //       focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.indigo)),
-              //       hintText: 'Contoh: B 1234 XYZ',
-              //       hintStyle: TextStyle(color: Colors.white30),
-              //     ),
-              //   ),
-              // ),
-              // const SizedBox(height: 16.0), // Sesuaikan spacing jika ada input plat
+              _buildDetailRow('Durasi:', durationText.trim(), context),
+              // _buildDetailRow('Waktu Selesai:', dateTimeFormatter.format(widget.endTime), context),
+              const SizedBox(height: 16.0),
+              _buildDetailRow('Tipe Pengguna:', widget.userType, context),
+              const SizedBox(height: 32.0),
+
               if (widget.userType == 'Registered')
-                const Text(
-                  'Mohon tunjukkan kartu identitas Anda saat tiba.',
-                  style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white70), // Ukuran font disesuaikan
-                ),
-              if (widget.userType == 'Guest')
-                const Text(
-                  'Pembayaran diperlukan melalui QRIS.',
-                  style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white70), // Ukuran font disesuaikan
-                ),
-              const SizedBox(height: 40.0),
-              Center(
-                child: ElevatedButton(
+                _buildConfirmationButton(
+                  context: context,
+                  icon: Icons.credit_card, // Mengganti ikon ID card
+                  text: 'Konfirmasi (Identitas Terdaftar)',
                   onPressed: _isLoading ? null : _confirmBooking,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40.0, vertical: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    backgroundColor: Colors.indigo,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          // Indikator loading lebih rapi
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : const Text(
-                          'Konfirmasi Booking', // Teks disesuaikan
-                          style: TextStyle(fontSize: 18.0),
-                        ),
+                  backgroundColor: lightPurpleBackground,
+                  foregroundColor: primaryColor,
                 ),
-              ),
+
+              if (widget.userType == 'Guest')
+                _buildConfirmationButton(
+                  context: context,
+                  icon: Icons.qr_code_scanner, // Ikon QR
+                  text: 'Lanjutkan ke Pembayaran QR',
+                  onPressed: _isLoading ? null : _confirmBooking,
+                  backgroundColor: lightPurpleBackground,
+                  foregroundColor: primaryColor,
+                ),
+
+              if (_isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
             ],
           ),
         ),
@@ -226,28 +225,55 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildConfirmationButton({
+    required BuildContext context,
+    required IconData icon,
+    required String text,
+    required VoidCallback? onPressed,
+    required Color backgroundColor,
+    required Color foregroundColor,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: Icon(icon, size: 24),
+        label: Text(text, style: const TextStyle(fontSize: 16)),
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0), // Sesuai desain
+            side: BorderSide(
+                color: foregroundColor.withAlpha((255 * 0.5).round())),
+          ),
+          elevation: 0,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: Theme.of(context)
+              .textTheme
+              .bodyLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         Expanded(
-          // Tambahkan Expanded agar value tidak overflow jika panjang
           child: Text(
             value,
-            textAlign: TextAlign.end, // Ratakan teks value ke kanan
-            style: const TextStyle(
-              fontSize: 18.0,
-              color: Colors.white70,
-            ),
-            overflow: TextOverflow.ellipsis, // Cegah overflow dengan ellipsis
+            textAlign: TextAlign.end,
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(color: Colors.black54),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

@@ -74,7 +74,15 @@ class DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildParkingSlot(
       String slotNumber, bool isOccupied, String userType) {
-    final color = isOccupied ? Colors.indigoAccent : Colors.green;
+    // Gunakan warna dari tema atau definisikan warna ungu muda
+    final Color occupiedColor = Theme.of(context)
+        .colorScheme
+        .primary
+        .withAlpha((255 * 0.4).round()); // Menggunakan withAlpha
+    // Atau warna solid: const Color(0xFFE1BEE7); // Contoh Lavender
+    const Color availableColor = Colors.green; // Tetap hijau untuk tersedia
+
+    final color = isOccupied ? occupiedColor : availableColor;
     final statusText = isOccupied ? 'Terisi' : 'Tersedia';
 
     return GestureDetector(

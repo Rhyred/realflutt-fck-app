@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
 
 class AccountSettingsScreen extends StatefulWidget {
-  const AccountSettingsScreen({super.key});
+  final ThemeNotifier themeNotifier;
+
+  const AccountSettingsScreen({super.key, required this.themeNotifier});
 
   @override
   State<AccountSettingsScreen> createState() => _AccountSettingsScreenState();
@@ -35,32 +38,52 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final User? currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      // AppBar dan backgroundColor akan mengambil dari tema
       appBar: AppBar(
         title: const Text('Pengaturan Akun'),
-        backgroundColor: Colors.black, // Sesuaikan dengan tema
+        automaticallyImplyLeading:
+            false, // Jika ini adalah tab utama di BottomNav
       ),
-      backgroundColor: Colors.black, // Sesuaikan dengan tema
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
             if (currentUser != null) ...[
               ListTile(
-                leading: const Icon(Icons.email, color: Colors.white70),
-                title:
-                    const Text('Email', style: TextStyle(color: Colors.white)),
+                leading: Icon(Icons.email,
+                    color: Theme.of(context).colorScheme.primary),
+                title: Text('Email',
+                    style: Theme.of(context).textTheme.titleMedium),
                 subtitle: Text(
-                    currentUser.email ?? 'Tidak ada email (Guest atau Anonim)',
-                    style: const TextStyle(color: Colors.white70)),
+                  currentUser.email ?? 'Tidak ada email (Guest atau Anonim)',
+                  // style default dari tema untuk subtitle
+                ),
               ),
-              const Divider(color: Colors.white24),
-              // Tambahkan item lain di sini jika perlu (mis. ubah password)
+              const Divider(), // Menggunakan warna Divider dari tema
             ],
+            SwitchListTile(
+              title: Text('Mode Gelap',
+                  style: Theme.of(context).textTheme.titleMedium),
+              value: widget.themeNotifier.themeMode == ThemeMode.dark,
+              onChanged: (bool value) {
+                widget.themeNotifier.setThemeMode(
+                  value ? ThemeMode.dark : ThemeMode.light,
+                );
+              },
+              secondary: Icon(
+                widget.themeNotifier.themeMode == ThemeMode.dark
+                    ? Icons.dark_mode
+                    : Icons.light_mode,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text('Logout',
-                  style: TextStyle(color: Colors.redAccent)),
-              onTap: _logout, // Panggil _logout tanpa context
+              leading: Icon(Icons.logout,
+                  color: Theme.of(context).colorScheme.error),
+              title: Text('Logout',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onTap: _logout,
             ),
           ],
         ),
