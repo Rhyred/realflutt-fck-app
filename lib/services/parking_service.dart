@@ -15,9 +15,9 @@ class ParkingService {
       String slotNumber, bool isOccupied) async {
     try {
       await _parkingSlotsRef.child(slotNumber).set(isOccupied);
-      print('ParkingService: Slot $slotNumber status updated to $isOccupied');
+      // print('ParkingService: Slot $slotNumber status updated to $isOccupied');
     } catch (e) {
-      print('Error updating parking slot status: $e');
+      // print('Error updating parking slot status: $e');
       throw Exception('Failed to update parking slot status: $e');
     }
   }
@@ -31,7 +31,7 @@ class ParkingService {
       }
       return false; // Default jika tidak ada data atau null
     } catch (e) {
-      print('Error getting parking slot status: $e');
+      // print('Error getting parking slot status: $e');
       return false;
     }
   }
@@ -74,17 +74,17 @@ class ParkingService {
           // (desiredStart < existingEnd) and (desiredEnd > existingStart)
           if (desiredStartTime.isBefore(existingEndTime) &&
               desiredEndTime.isAfter(existingStartTime)) {
-            print(
-                'Slot $slotId tidak tersedia: Tumpang tindih dengan booking yang ada.');
+            // print(
+            // 'Slot $slotId tidak tersedia: Tumpang tindih dengan booking yang ada.');
             return false; // Ada tumpang tindih
           }
         }
       }
-      print(
-          'Slot $slotId tersedia untuk booking pada rentang waktu yang diinginkan.');
+      // print(
+      // 'Slot $slotId tersedia untuk booking pada rentang waktu yang diinginkan.');
       return true; // Tidak ada tumpang tindih
     } catch (e) {
-      print('Error checking slot availability: $e');
+      // print('Error checking slot availability: $e');
       return false; // Anggap tidak tersedia jika ada error
     }
   }
@@ -96,8 +96,8 @@ class ParkingService {
     if (bookingData['slotId'] == null ||
         bookingData['startTime'] == null ||
         bookingData['endTime'] == null) {
-      print(
-          'Error: Data booking tidak lengkap (slotId, startTime, endTime diperlukan).');
+      // print(
+      // 'Error: Data booking tidak lengkap (slotId, startTime, endTime diperlukan).');
       return null;
     }
 
@@ -109,8 +109,8 @@ class ParkingService {
     bool available = await isSlotAvailableForBooking(
         slotId, desiredStartTime, desiredEndTime);
     if (!available) {
-      print(
-          'Gagal membuat booking: Slot $slotId tidak tersedia pada waktu yang diminta.');
+      // print(
+      // 'Gagal membuat booking: Slot $slotId tidak tersedia pada waktu yang diminta.');
       return null; // Slot tidak tersedia
     }
 
@@ -126,10 +126,10 @@ class ParkingService {
     try {
       final newBookingRef = _bookingsRef.push();
       await newBookingRef.set(bookingData);
-      print('Booking berhasil dibuat dengan ID: ${newBookingRef.key}');
+      // print('Booking berhasil dibuat dengan ID: ${newBookingRef.key}');
       return newBookingRef.key; // Kembalikan ID booking baru
     } catch (e) {
-      print('Error creating booking: $e');
+      // print('Error creating booking: $e');
       return null;
     }
   }
@@ -149,7 +149,7 @@ class ParkingService {
         });
       }
     } catch (e) {
-      print('Error getting bookings for slot $slotId: $e');
+      // print('Error getting bookings for slot $slotId: $e');
     }
     return bookingsList;
   }
@@ -169,7 +169,7 @@ class ParkingService {
         });
       }
     } catch (e) {
-      print('Error getting user bookings for $userId: $e');
+      // print('Error getting user bookings for $userId: $e');
     }
     return bookingsList;
   }

@@ -47,7 +47,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
 
     String? actualUserId;
     final User? currentUser = FirebaseAuth.instance.currentUser;
-    final uuid = Uuid(); // Membuat instance Uuid, hilangkan const
+    const uuid = Uuid(); // Membuat instance Uuid
 
     if (widget.userType == 'Registered') {
       if (currentUser != null) {
@@ -67,17 +67,6 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     } else {
       // Guest User
       actualUserId = 'guest_${uuid.v4()}'; // Menghasilkan UUID v4 untuk tamu
-    }
-
-    if (actualUserId == null) {
-      // Pemeriksaan tambahan jika ada alur logika yang terlewat
-      if (mounted) {
-        _showSnackbar('Tidak dapat menentukan ID pengguna.', isError: true);
-        setState(() {
-          _isLoading = false;
-        });
-      }
-      return;
     }
 
     // Contoh plat nomor, bisa diambil dari _vehiclePlateController.text jika ada input field

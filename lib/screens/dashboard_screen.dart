@@ -25,6 +25,16 @@ class DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Smart Parking Dashboard'),
         backgroundColor: Colors.black,
+        automaticallyImplyLeading:
+            false, // Sembunyikan tombol kembali jika ini adalah tab utama
+        // actions: [ // Dihapus karena settings pindah ke BottomNav
+        //   IconButton(
+        //     icon: const Icon(Icons.settings),
+        //     onPressed: () {
+        //       Navigator.pushNamed(context, '/account_settings');
+        //     },
+        //   ),
+        // ],
       ),
       backgroundColor: Colors.black,
       body: Padding(
@@ -75,7 +85,9 @@ class DashboardScreenState extends State<DashboardScreen> {
           '/booking_confirmation',
           arguments: {
             'slotNumber': slotNumber,
-            'bookingTime': DateTime.now(),
+            'startTime': DateTime.now(), // Changed from bookingTime
+            'endTime': DateTime.now()
+                .add(const Duration(hours: 1)), // Added default endTime
             'userType': userType,
           },
         );
@@ -109,7 +121,9 @@ class DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8.0),
             Icon(
-              isOccupied ? FontAwesomeIcons.car : FontAwesomeIcons.squareParking,
+              isOccupied
+                  ? FontAwesomeIcons.car
+                  : FontAwesomeIcons.squareParking,
               size: 40.0,
               color: Colors.white,
             ),

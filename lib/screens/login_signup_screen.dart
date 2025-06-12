@@ -331,25 +331,6 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                           style: TextStyle(fontSize: 18.0),
                         ),
                       ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigasi langsung ke dashboard
-                          Navigator.pushReplacementNamed(context, '/dashboard');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text(
-                          'Bypass Login (Sementara)',
-                          style: TextStyle(fontSize: 18.0),
-                        ),
-                      ),
                     ],
                   ),
                   if (_isLoading) // Tampilkan indikator loading saat isLoading bernilai true

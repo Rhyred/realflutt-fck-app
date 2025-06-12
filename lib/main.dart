@@ -7,6 +7,9 @@ import 'package:smart_parking_app/screens/dashboard_screen.dart';
 import 'package:smart_parking_app/screens/booking_confirmation_screen.dart';
 import 'package:smart_parking_app/screens/payment_screen.dart';
 import 'package:smart_parking_app/screens/about_screen.dart';
+import 'package:smart_parking_app/screens/auth_wrapper.dart'; // Import AuthWrapper
+import 'package:smart_parking_app/screens/account_settings_screen.dart'; // Import AccountSettingsScreen
+import 'package:smart_parking_app/screens/main_navigation_screen.dart'; // Import MainNavigationScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,8 +77,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/login',
+      // initialRoute: '/login', // Diganti dengan home
+      home: const AuthWrapper(), // Gunakan AuthWrapper sebagai halaman utama
       routes: {
+        // Rute '/login' dan '/dashboard' masih bisa berguna untuk navigasi eksplisit
+        // jika diperlukan, meskipun AuthWrapper menangani tampilan awal.
         '/login': (context) => const LoginSignupScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/booking_confirmation': (context) {
@@ -126,6 +132,10 @@ class MyApp extends StatelessWidget {
           );
         },
         '/about': (context) => const AboutScreen(),
+        '/account_settings': (context) =>
+            const AccountSettingsScreen(), // Tambahkan rute untuk AccountSettingsScreen
+        '/main_navigation': (context) =>
+            const MainNavigationScreen(), // Tambahkan rute
       },
     );
   }
