@@ -61,6 +61,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
               const Divider(), // Menggunakan warna Divider dari tema
             ],
+            ListTile(
+              leading: Icon(Icons.history,
+                  color: Theme.of(context).colorScheme.primary),
+              title: Text('Riwayat Booking',
+                  style: Theme.of(context).textTheme.titleMedium),
+              onTap: () {
+                Navigator.pushNamed(context, '/booking_history');
+              },
+            ),
+            const Divider(),
             SwitchListTile(
               title: Text('Mode Gelap',
                   style: Theme.of(context).textTheme.titleMedium),

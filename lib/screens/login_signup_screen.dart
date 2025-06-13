@@ -105,7 +105,8 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         password: _passwordController.text.trim(),
       );
       if (!mounted) return;
-      // Navigasi akan ditangani oleh AuthWrapper
+      // Arahkan ke halaman lengkapi profil setelah signup berhasil
+      Navigator.pushReplacementNamed(context, '/complete_profile');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       _showErrorSnackbar('Gagal mendaftar: ${e.message}');

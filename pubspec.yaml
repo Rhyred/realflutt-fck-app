@@ -36,3 +36,12 @@ flutter:
     - assets/
     - assets/google_logo.png
     - assets/success_animation.json
+    - assets/app_icon.png 
+    - assets/team/ 
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  # adaptive_icon_background: "#FFFFFF" # Opsional, bisa ditambahkan jika diperlukan
+  # adaptive_icon_foreground: "assets/app_icon_foreground.png" # Opsional

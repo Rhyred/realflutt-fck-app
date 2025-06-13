@@ -1,9 +1,9 @@
 {
     "users": {
         "user123": {
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "phone": "+628123456789",
+            "name": "Rhyred",
+            "email": "robigold9@gmail.com",
+            "phone": "+6282116343842",
             "car_plate": "B 1234 ABC",
             "created_at": {
                 "__datatype__": "Timestamp",

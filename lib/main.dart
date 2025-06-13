@@ -11,6 +11,8 @@ import 'package:smart_parking_app/screens/auth_wrapper.dart'; // Import AuthWrap
 import 'package:smart_parking_app/screens/account_settings_screen.dart'; // Import AccountSettingsScreen
 import 'package:smart_parking_app/screens/main_navigation_screen.dart'; // Import MainNavigationScreen
 import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
+import 'package:smart_parking_app/screens/booking_history_screen.dart'; // Import BookingHistoryScreen
+import 'package:smart_parking_app/screens/complete_profile_screen.dart'; // Import CompleteProfileScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -211,7 +213,7 @@ class _MyAppState extends State<MyApp> {
     // Untuk saat ini, kita akan set default ke lightTheme
     // Implementasi switch akan ditambahkan kemudian
     return MaterialApp(
-      title: 'Aplikasi Parkir Cerdas',
+      title: 'Smart_Park By NRP', // Nama aplikasi diubah
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _themeNotifier.themeMode, // Gunakan themeMode dari notifier
@@ -275,6 +277,10 @@ class _MyAppState extends State<MyApp> {
         //     themeNotifier: _themeNotifier),
         '/main_navigation': (context) => MainNavigationScreen(
             themeNotifier: _themeNotifier), // Teruskan notifier
+        '/booking_history': (context) =>
+            const BookingHistoryScreen(), // Tambahkan rute
+        '/complete_profile': (context) =>
+            const CompleteProfileScreen(), // Tambahkan rute
       },
     );
   }
