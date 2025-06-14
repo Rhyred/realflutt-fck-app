@@ -3,374 +3,219 @@
 #include <MFRC522.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
 
-// WiFi credentials
-const char *ssid = "HOSTPOT ITENAS"; // Your WiFi SSID
-const char *password = "";           // Your WiFi Password (leave empty if open)
-// Firebase Realtime Database URL
-const char *firebaseHost = "my-app-fak-default-rtdb.asia-southeast1.firebasedatabase.app";
-const String firebaseGateEventsPath = "/gate_events.json"; // For POSTing new gate events
-const String firebaseParkingSlotsPath = "/parking_slots/"; // Base path for PUTting slot status, will append slotId.json
-
+// ==== Pin Konfigurasi ====
 // RFID
 #define RST_PIN 22
 #define SS_PIN 21
 
-// Servo
+// Servo dan Touch
 #define SERVO_PIN 2
-#define TOUCH_PIN 14 // Assuming this is a touch sensor to indicate car presence for entry
+#define TOUCH_PIN 14
+#define TOUCH_PIN2 27
+#define TOUCH_PIN3 33
+#define TOUCH_PIN4 32
 
-// Ultrasonic
-#define TRIG_PIN 5 // Ultrasonic sensor for entry detection
+// Ultrasonik
+#define TRIG_PIN 5
 #define ECHO_PIN 17
-#define TRIG_PIN_OUT 12 // Ultrasonic sensor for exit detection
+#define TRIG_PIN_OUT 12
 #define ECHO_PIN_OUT 13
 
-// Slot Sensors (TTP223) - 4 slots
-const int slotSensorPins[] = {18, 19, 23, 25}; // GPIO pins for TTP223 sensors
-const int numSlots = sizeof(slotSensorPins) / sizeof(slotSensorPins[0]);
-bool currentSlotStatus[numSlots];
-bool previousSlotStatus[numSlots];
-String slotIds[numSlots] = {"slot1", "slot2", "slot3", "slot4"}; // Corresponding IDs for Firebase
+// I2C LCD - custom SDA & SCL
+#define SDA_LCD 25
+#define SCL_LCD 26
 
+// ==== Objek ====
 MFRC522 rfid(SS_PIN, RST_PIN);
 Servo myServo;
-LiquidCrystal_I2C lcd(0x27, 16, 2); // Common I2C address, could also be 0x3F
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Alamat umum 0x27
 
+// ==== Variabel ====
 bool isOpen = false;
 unsigned long openTime = 0;
-bool ultrasonicDetectedEntry = false;
-unsigned long ultrasonicStartTimeEntry = 0;
+bool ultrasonicDetected = false;
+unsigned long ultrasonicStartTime = 0;
+bool slotTerisi[4] = {false, false, false, false};
 
+// ==== Setup ====
 void setup()
 {
     Serial.begin(115200);
     SPI.begin();
     rfid.PCD_Init();
-    Serial.println("Tempelkan kartu RFID...");
 
-    myServo.attach(SERVO_PIN);
-    myServo.write(0); // Initial position: closed
-
-    Wire.begin(4, 15); // SDA, SCL pins for ESP32 I2C
+    Wire.begin(SDA_LCD, SCL_LCD);
     lcd.init();
     lcd.backlight();
     lcd.setCursor(0, 0);
     lcd.print("Sistem Parkir");
     lcd.setCursor(0, 1);
-    lcd.print("Siap Digunakan");
+    lcd.print("Smart Dimulai");
+    delay(2000);
+    lcd.clear();
+
+    myServo.attach(SERVO_PIN);
+    myServo.write(0); // posisi awal tertutup
 
     pinMode(TOUCH_PIN, INPUT);
+    pinMode(TOUCH_PIN2, INPUT);
+    pinMode(TOUCH_PIN3, INPUT);
+    pinMode(TOUCH_PIN4, INPUT);
     pinMode(TRIG_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
     pinMode(TRIG_PIN_OUT, OUTPUT);
     pinMode(ECHO_PIN_OUT, INPUT);
 
-    // Initialize slot sensor pins and initial status
-    for (int i = 0; i < numSlots; i++)
-    {
-        pinMode(slotSensorPins[i], INPUT_PULLUP);               // Assuming TTP223 output is HIGH when touched, LOW otherwise. Use INPUT_PULLUP if it's active LOW. Adjust if needed.
-        previousSlotStatus[i] = digitalRead(slotSensorPins[i]); // Read initial state
-        currentSlotStatus[i] = previousSlotStatus[i];
-        // Optionally, update Firebase with initial status here if needed
-        // updateSlotStatusFirebase(slotIds[i], currentSlotStatus[i]);
-    }
-
-    // Connect to WiFi
-    WiFi.begin(ssid, password);
-    Serial.print("Menghubungkan WiFi");
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Connecting WiFi");
-    int wifiConnectAttempts = 0;
-    while (WiFi.status() != WL_CONNECTED && wifiConnectAttempts < 20)
-    { // Try for 10 seconds
-        delay(500);
-        Serial.print(".");
-        lcd.print(".");
-        wifiConnectAttempts++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        Serial.println("\nWiFi terhubung!");
-        Serial.print("IP Address: ");
-        Serial.println(WiFi.localIP());
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("WiFi Terhubung");
-        lcd.setCursor(0, 1);
-        lcd.print(WiFi.localIP());
-        delay(2000);
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Sistem Parkir");
-        lcd.setCursor(0, 1);
-        lcd.print("Siap Digunakan");
-    }
-    else
-    {
-        Serial.println("\nWiFi gagal terhubung.");
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("WiFi Gagal");
-        lcd.setCursor(0, 1);
-        lcd.print("Cek Koneksi");
-    }
+    Serial.println("Sistem Siap. Tempelkan kartu RFID...");
 }
 
+// ==== Loop Utama ====
 void loop()
 {
-    // ===== Slot Sensor Detection =====
-    for (int i = 0; i < numSlots; i++)
-    {
-        // Assuming TTP223 gives HIGH when car is present (slot occupied)
-        // and LOW when car is not present (slot empty).
-        // Adjust logic if your sensor behaves differently (e.g., active LOW).
-        // If using INPUT_PULLUP and sensor pulls LOW on detection, then occupied is LOW.
-        bool occupied = (digitalRead(slotSensorPins[i]) == HIGH); // Change to LOW if active-low with pullup
+    // Update status slot
+    slotTerisi[0] = digitalRead(TOUCH_PIN) == HIGH;
+    slotTerisi[1] = digitalRead(TOUCH_PIN2) == HIGH;
+    slotTerisi[2] = digitalRead(TOUCH_PIN3) == HIGH;
+    slotTerisi[3] = digitalRead(TOUCH_PIN4) == HIGH;
 
-        currentSlotStatus[i] = occupied;
-
-        if (currentSlotStatus[i] != previousSlotStatus[i])
-        {
-            Serial.print("Slot ");
-            Serial.print(slotIds[i]);
-            Serial.print(" status berubah menjadi: ");
-            Serial.println(currentSlotStatus[i] ? "TERISI" : "KOSONG");
-            updateSlotStatusFirebase(slotIds[i], currentSlotStatus[i]);
-            previousSlotStatus[i] = currentSlotStatus[i];
-        }
-    }
-
-    // ===== Touch Sensor (Car Presence for Entry Gate) =====
-    if (digitalRead(TOUCH_PIN) == HIGH)
-    {
-        Serial.println("Touch detected: Car ready for entry gate");
-        delay(200);
-    }
-
-    // ===== RFID Detection =====
+    // === Deteksi RFID ===
     if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
     {
         Serial.println("Kartu RFID terdeteksi!");
-        String uid = getUID();
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Kartu Terdeteksi");
-        lcd.setCursor(0, 1);
-        lcd.print(uid.substring(0, 16));
+        printUIDToSerial();
 
-        if (!isOpen)
+        int slot = cariSlotKosong();
+        if (slot != -1 && !isOpen)
         {
-            bukaServo("rfid_entry", uid);
+            bukaServo();
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Masuk: Slot ");
+            lcd.print(slot + 1);
+            lcd.setCursor(0, 1);
+            lcd.print("Silakan Parkir");
+        }
+        else
+        {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Parkiran Penuh");
+            lcd.setCursor(0, 1);
+            lcd.print("Tunggu Kosong");
         }
 
         rfid.PICC_HaltA();
         rfid.PCD_StopCrypto1();
     }
 
-    // ===== Ultrasonic Entry Detection =====
-    float distanceEntry = jarakMasuk();
-    // Serial.print("Jarak Masuk: "); Serial.println(distanceEntry); // Uncomment for debugging
-    if (distanceEntry >= 2.0 && distanceEntry <= 15.0)
+    // === Ultrasonik Masuk ===
+    float distance = jarakmasuk();
+    if (distance >= 6.0 && distance <= 9.0)
     {
-        if (!ultrasonicDetectedEntry)
+        if (!ultrasonicDetected)
         {
-            ultrasonicDetectedEntry = true;
-            ultrasonicStartTimeEntry = millis();
-            Serial.println("Objek terdeteksi di jalur masuk (ultrasonic).");
+            ultrasonicDetected = true;
+            ultrasonicStartTime = millis();
         }
-        else if ((millis() - ultrasonicStartTimeEntry >= 2000) && !isOpen)
+
+        if ((millis() - ultrasonicStartTime >= 3000) && !isOpen)
         {
-            Serial.println("Deteksi masuk valid (ultrasonic)");
-            bukaServo("ultrasonic_entry", "");
-            ultrasonicDetectedEntry = false;
+            int slot = cariSlotKosong();
+            if (slot != -1)
+            {
+                bukaServo();
+                lcd.clear();
+                lcd.setCursor(0, 0);
+                lcd.print("Sensor: Slot ");
+                lcd.print(slot + 1);
+                lcd.setCursor(0, 1);
+                lcd.print("Silakan Masuk");
+            }
+            else
+            {
+                lcd.clear();
+                lcd.setCursor(0, 0);
+                lcd.print("Parkiran Penuh");
+                lcd.setCursor(0, 1);
+                lcd.print("Tunggu Kosong");
+            }
+            ultrasonicDetected = false;
         }
     }
     else
     {
-        if (ultrasonicDetectedEntry && (millis() - ultrasonicStartTimeEntry >= 5000))
-        {
-            ultrasonicDetectedEntry = false;
-            Serial.println("Objek hilang dari jalur masuk (timeout).");
-        }
+        ultrasonicDetected = false;
     }
 
-    // ===== Ultrasonic Exit Detection =====
-    float distanceExit = jarakKeluar();
-    // Serial.print("Jarak Keluar: "); Serial.println(distanceExit); // Uncomment for debugging
-    if (distanceExit >= 2.0 && distanceExit <= 15.0 && !isOpen)
+    // === Ultrasonik Keluar ===
+    float distance_out = jarakkeluar();
+    if (distance_out >= 2.0 && distance_out <= 4.5 && !isOpen)
     {
-        Serial.println("Mobil keluar terdeteksi (ultrasonic)");
-        bukaServo("ultrasonic_exit", "");
-        delay(3000);
+        bukaServo();
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Terima Kasih");
+        lcd.setCursor(0, 1);
+        lcd.print("Hati-hati!");
     }
 
-    // ===== Automatic Servo Close =====
-    if (isOpen && (millis() - openTime >= 7000))
+    // === Tutup Otomatis ===
+    if (isOpen && (millis() - openTime >= 10000))
     {
         myServo.write(0);
         isOpen = false;
-        Serial.println("Servo ditutup kembali (otomatis)");
+        Serial.println("Servo ditutup");
         lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print("Gerbang Tertutup");
-        delay(1000);
-        lcd.setCursor(0, 1);
-        lcd.print("Siap Digunakan");
+        lcd.print("Gerbang Ditutup");
     }
 
-    delay(100);
+    delay(300);
 }
 
-// ===== Function to open servo and send gate event to server =====
-void bukaServo(String triggerSource, String uid)
+// ==== Fungsi Tambahan ====
+void bukaServo()
 {
     myServo.write(90);
     isOpen = true;
     openTime = millis();
-    Serial.print("Servo terbuka oleh: ");
-    Serial.println(triggerSource);
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Gerbang Terbuka");
-    if (!uid.isEmpty())
-    {
-        lcd.setCursor(0, 1);
-        lcd.print(uid.substring(0, 16));
-    }
-
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        HTTPClient http;
-        String fullServerUrl = "https://" + String(firebaseHost) + firebaseGateEventsPath;
-        http.begin(fullServerUrl);
-        http.addHeader("Content-Type", "application/json");
-
-        StaticJsonDocument<256> doc;
-        doc["gateId"] = "gate1";
-        doc["trigger"] = triggerSource;
-        doc["status"] = "open";
-        if (!uid.isEmpty())
-        {
-            doc["uid"] = uid;
-        }
-        doc["timestamp"] = millis();
-
-        String jsonData;
-        serializeJson(doc, jsonData);
-        Serial.print("Mengirim JSON (gate event): ");
-        Serial.println(jsonData);
-
-        int httpCode = http.POST(jsonData);
-
-        if (httpCode > 0)
-        {
-            String response = http.getString();
-            Serial.print("Server response code (gate event): ");
-            Serial.println(httpCode);
-            Serial.print("Server response (gate event): ");
-            Serial.println(response);
-        }
-        else
-        {
-            Serial.print("Gagal kirim ke server (gate event), HTTP code: ");
-            Serial.println(httpCode);
-            Serial.print("Error: ");
-            Serial.println(http.errorToString(httpCode));
-        }
-        http.end();
-    }
-    else
-    {
-        Serial.println("WiFi tidak terhubung. Data (gate event) tidak dikirim.");
-        lcd.setCursor(0, 1);
-        lcd.print("WiFi Offline");
-    }
+    Serial.println("Gerbang terbuka");
 }
 
-// ===== Function to update slot status on Firebase =====
-void updateSlotStatusFirebase(String slotId, bool isOccupied)
-{
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        HTTPClient http;
-        // Construct URL: https://<firebaseHost>/parking_slots/<slotId>.json
-        String url = "https://" + String(firebaseHost) + firebaseParkingSlotsPath + slotId + ".json";
-        http.begin(url);
-        http.addHeader("Content-Type", "application/json"); // Though for boolean, Firebase might not strictly need it for PUT
-
-        String payload = isOccupied ? "true" : "false";
-        Serial.print("Mengirim status slot: ");
-        Serial.print(slotId);
-        Serial.print(" = ");
-        Serial.println(payload);
-        Serial.print("URL: ");
-        Serial.println(url);
-
-        int httpCode = http.PUT(payload); // Send boolean as string
-
-        if (httpCode > 0)
-        {
-            String response = http.getString();
-            Serial.print("Server response code (slot update): ");
-            Serial.println(httpCode);
-            Serial.print("Server response (slot update): ");
-            Serial.println(response);
-        }
-        else
-        {
-            Serial.print("Gagal update status slot ke server, HTTP code: ");
-            Serial.println(httpCode);
-            Serial.print("Error: ");
-            Serial.println(http.errorToString(httpCode));
-        }
-        http.end();
-    }
-    else
-    {
-        Serial.println("WiFi tidak terhubung. Status slot tidak dikirim.");
-    }
-}
-
-// ===== Function for entry distance =====
-float jarakMasuk()
+float jarakmasuk()
 {
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
-
-    long duration = pulseIn(ECHO_PIN, HIGH, 23200);
-    float distance = duration * 0.0343 / 2;
-    if (duration == 0)
-        return 999;
-    return distance;
+    long dur = pulseIn(ECHO_PIN, HIGH, 30000);
+    return dur * 0.034 / 2;
 }
 
-// ===== Function for exit distance =====
-float jarakKeluar()
+float jarakkeluar()
 {
     digitalWrite(TRIG_PIN_OUT, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG_PIN_OUT, HIGH);
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN_OUT, LOW);
-
-    long duration_out = pulseIn(ECHO_PIN_OUT, HIGH, 23200);
-    float distance_out = duration_out * 0.0343 / 2;
-    if (duration_out == 0)
-        return 999;
-    return distance_out;
+    long dur = pulseIn(ECHO_PIN_OUT, HIGH, 30000);
+    return dur * 0.034 / 2;
 }
 
-// ===== Function to get UID =====
-String getUID()
+int cariSlotKosong()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (!slotTerisi[i])
+            return i;
+    }
+    return -1;
+}
+
+void printUIDToSerial()
 {
     String uidString = "";
     for (byte i = 0; i < rfid.uid.size; i++)
@@ -383,5 +228,4 @@ String getUID()
     uidString.toUpperCase();
     Serial.print("UID: ");
     Serial.println(uidString);
-    return uidString;
 }
