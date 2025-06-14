@@ -33,7 +33,7 @@ class AboutScreen extends StatelessWidget {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       // Bisa tambahkan fallback atau error handling di sini
       // Misalnya, menampilkan Snackbar jika URL tidak bisa dibuka
-      print('Could not launch $urlString');
+      debugPrint('Could not launch $urlString');
     }
   }
 

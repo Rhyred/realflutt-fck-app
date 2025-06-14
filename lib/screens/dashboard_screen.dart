@@ -150,7 +150,7 @@ class DashboardScreenState extends State<DashboardScreen> {
     Color borderColor = Colors.green[700]!;
     Color sensorIndicatorColor = Colors.green[400]!; // Indikator sensor fisik
     IconData slotIcon = FontAwesomeIcons
-        .carAlt; // Ikon mobil default (atau squareParking jika lebih cocok)
+        .carRear; // Ikon mobil default (atau squareParking jika lebih cocok)
 
     // TODO: Implementasi logika status "Dibooking" yang sebenarnya.
     // Ini memerlukan query ke data booking untuk slot ini pada waktu saat ini.
@@ -175,13 +175,13 @@ class DashboardScreenState extends State<DashboardScreen> {
       borderColor = Theme.of(context).colorScheme.primary;
       // Indikator sensor tetap hijau karena secara fisik kosong
       sensorIndicatorColor = Colors.green[400]!;
-      slotIcon = FontAwesomeIcons.carAlt; // Mobil outline atau ikon booking
+      slotIcon = FontAwesomeIcons.carRear; // Mobil outline atau ikon booking
     } else {
       statusText = 'Tersedia';
       slotContentColor = Colors.green[700]!;
       borderColor = Colors.green[700]!;
       sensorIndicatorColor = Colors.green[400]!;
-      slotIcon = FontAwesomeIcons.carAlt; // Mobil outline atau parking
+      slotIcon = FontAwesomeIcons.carRear; // Mobil outline atau parking
     }
 
     return GestureDetector(
