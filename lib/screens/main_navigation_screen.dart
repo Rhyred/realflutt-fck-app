@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_parking_app/screens/dashboard_screen.dart';
-import 'package:smart_parking_app/screens/account_settings_screen.dart';
-import 'package:smart_parking_app/screens/about_screen.dart';
+import 'package:smart_parking_app/screens/settings_hub_screen.dart'; // Import hub
 import 'package:smart_parking_app/theme_provider.dart'; // Import ThemeNotifier
 
 class MainNavigationScreen extends StatefulWidget {
@@ -22,9 +21,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     super.initState();
     _widgetOptions = <Widget>[
       const DashboardScreen(),
-      AccountSettingsScreen(
-          themeNotifier: widget.themeNotifier), // Teruskan notifier
-      const AboutScreen(),
+      SettingsHubScreen(
+          themeNotifier: widget.themeNotifier), // Gunakan hub baru
     ];
   }
 
@@ -50,10 +48,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info_outline),
-            label: 'About',
           ),
         ],
         currentIndex: _selectedIndex,

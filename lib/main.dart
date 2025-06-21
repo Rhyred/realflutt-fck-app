@@ -48,8 +48,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Default ke tema terang
-    _themeNotifier = ThemeNotifier(ThemeMode.light);
+    // Default ke tema gelap
+    _themeNotifier = ThemeNotifier(ThemeMode.dark);
     _themeNotifier.addListener(() {
       if (mounted) {
         setState(() {
@@ -223,8 +223,7 @@ class _MyAppState extends State<MyApp> {
         '/dashboard': (context) => const DashboardScreen(),
         // Modifikasi rute AccountSettingsScreen untuk menerima ThemeNotifier
         // Ini adalah cara sederhana, Provider/InheritedWidget lebih baik untuk skala besar
-        '/account_settings': (context) =>
-            AccountSettingsScreen(themeNotifier: _themeNotifier),
+        '/account_settings': (context) => const AccountSettingsScreen(),
         '/booking_confirmation': (context) {
           final args = ModalRoute.of(context)?.settings.arguments
               as Map<String, dynamic>?;

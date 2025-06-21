@@ -27,7 +27,9 @@ class DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('Dashboard',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+        centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -67,7 +69,7 @@ class DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Status: $displayName',
+                    'Masuk Sebagai: $displayName',
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -83,11 +85,13 @@ class DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            Text(
-              'Status Slot Parkir',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            Center(
+              child: Text(
+                'Status Slot Parkir',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             ),
             const SizedBox(height: 10.0),
             _buildLegend(context), // Panggil legenda di sini
@@ -186,25 +190,19 @@ class DashboardScreenState extends State<DashboardScreen> {
 
     return GestureDetector(
       onTap: () {
-        // Hanya bisa diklik jika tersedia atau (nantinya) jika dibooking oleh pengguna sendiri untuk opsi lain
-        if (statusText == 'Tersedia' ||
-            (statusText == 'Dibooking' /* && isBookedByCurrentUser */)) {
-          Navigator.pushNamed(
-            context,
-            '/booking_confirmation',
-            arguments: {
-              'slotNumber': slotNumber,
-              'startTime': DateTime.now(),
-              'endTime': DateTime.now().add(const Duration(hours: 1)),
-              'userType': userType,
-            },
-          );
-          _logParkingSlotUsage(slotNumber); // Panggil kembali log
+        if (statusText == 'Tersedia') {
+          _showSlotDetailsDialog(slotNumber, userType);
         } else if (statusText == 'Terisi') {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('Slot $slotNumber sedang terisi.'),
                 backgroundColor: Colors.red),
+          );
+        } else if (statusText == 'Dibooking') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Slot $slotNumber sudah dibooking.'),
+                backgroundColor: Theme.of(context).colorScheme.primary),
           );
         }
       },
@@ -309,6 +307,92 @@ class DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 4),
         Text(text, style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+
+  String _getSlotLocation(String slotNumber) {
+    switch (slotNumber) {
+      case 'Slot 1':
+        return 'Lantai A, No. 1';
+      case 'Slot 2':
+        return 'Lantai A, No. 2';
+      case 'Slot 3':
+        return 'Lantai B, No. 1';
+      case 'Slot 4':
+        return 'Lantai B, No. 2';
+      default:
+        return 'Lokasi tidak diketahui';
+    }
+  }
+
+  void _showSlotDetailsDialog(String slotNumber, String userType) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final now = DateTime.now();
+        final location = _getSlotLocation(slotNumber);
+
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+          title: const Text('Detail Slot Parkir',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _buildDetailRowDialog('Nomor Slot:', slotNumber),
+              _buildDetailRowDialog('Lokasi:', location),
+              _buildDetailRowDialog(
+                  'Tanggal:', DateFormat('d MMMM yyyy').format(now)),
+              _buildDetailRowDialog('Waktu:', DateFormat('HH:mm').format(now)),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: const Text('Pesan Sekarang'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog first
+                Navigator.pushNamed(
+                  context,
+                  '/booking_confirmation',
+                  arguments: {
+                    'slotNumber': slotNumber,
+                    'startTime': now,
+                    'endTime': now.add(const Duration(hours: 1)),
+                    'userType': userType,
+                  },
+                );
+                _logParkingSlotUsage(slotNumber);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRowDialog(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(value),
+        ],
+      ),
     );
   }
 }

@@ -193,8 +193,14 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
+                      Image.asset(
+                        'assets/app_icon.png',
+                        height: 200,
+                        width: 120,
+                      ),
+                      const SizedBox(height: 16.0),
                       Text(
-                        _isLogin ? 'Welcome Back!' : 'Create Account',
+                        _isLogin ? 'Welcome To Project IoT' : 'Create Account',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 32.0,
@@ -203,6 +209,12 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                               .colorScheme
                               .primary, // Warna dari tema
                         ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        'by S-Park D-02',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 40.0),
                       TextField(
@@ -285,6 +297,12 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
                           'Continue as Guest',
                           style: TextStyle(fontSize: 18.0),
                         ),
+                      ),
+                      const SizedBox(height: 32.0),
+                      Text(
+                        '© ${DateTime.now().year} Smart Parking Team. All rights reserved.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
