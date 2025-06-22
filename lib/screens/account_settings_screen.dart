@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:smart_parking_app/services/user_service.dart';
 import 'package:smart_parking_app/theme_provider.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
@@ -19,13 +20,27 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   final ImagePicker _picker = ImagePicker();
+  final UserService _userService = UserService();
   File? _imageFile;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _namaController.text = _currentUser?.displayName ?? '';
-    // TODO: Muat data no HP & plat dari database jika ada
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    if (_currentUser != null) {
+      final userProfile = await _userService.getUserProfile(_currentUser.uid);
+      if (userProfile != null && mounted) {
+        setState(() {
+          _noHpController.text = userProfile['phoneNumber'] ?? '';
+          _platNomorController.text = userProfile['plateNumber'] ?? '';
+        });
+      }
+    }
   }
 
   @override
@@ -46,6 +61,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memilih gambar: $e')),
       );
@@ -81,21 +97,66 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implementasikan logika penyimpanan data:
-      // 1. Update display name di Firebase Auth: _currentUser.updateDisplayName(_namaController.text)
-      // 2. Upload _imageFile ke Firebase Storage jika tidak null.
-      // 3. Dapatkan URL gambar setelah upload.
-      // 4. Update photoURL di Firebase Auth: _currentUser.updatePhotoURL(imageUrl)
-      // 5. Simpan no HP dan plat nomor ke Firestore/RTDB.
-
+  void _saveProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Profil berhasil disimpan!'),
+            content: Text('Sesi tidak valid. Silakan login kembali.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      String? photoURL = _currentUser.photoURL;
+
+      // 1. Upload gambar jika ada yang baru
+      if (_imageFile != null) {
+        photoURL = await _userService.uploadProfileImage(
+            _currentUser.uid, _imageFile!);
+      }
+
+      // 2. Update profil di Firebase Auth
+      if (_namaController.text != _currentUser.displayName) {
+        await _currentUser.updateDisplayName(_namaController.text);
+      }
+      if (photoURL != null && photoURL != _currentUser.photoURL) {
+        await _currentUser.updatePhotoURL(photoURL);
+      }
+
+      // 3. Update profil di Realtime Database
+      await _userService.updateUserProfile(
+        userId: _currentUser.uid,
+        name: _namaController.text,
+        plateNumber: _platNomorController.text,
+        phoneNumber: _noHpController.text,
+        photoURL: photoURL,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Profil berhasil diperbarui!'),
             backgroundColor: Colors.green),
       );
-      FocusScope.of(context).unfocus();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menyimpan profil: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        FocusScope.of(context).unfocus();
+      }
     }
   }
 
@@ -193,9 +254,18 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   textCapitalization: TextCapitalization.characters),
               const SizedBox(height: 30),
               ElevatedButton.icon(
-                icon: const Icon(Icons.save_outlined),
-                onPressed: _saveProfile,
-                label: const Text('Simpan Perubahan'),
+                icon: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save_outlined),
+                onPressed: _isLoading ? null : _saveProfile,
+                label: Text(_isLoading ? 'Menyimpan...' : 'Simpan Perubahan'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

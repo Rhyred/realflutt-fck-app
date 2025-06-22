@@ -1,11 +1,22 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:async'; // Untuk Futurer
+import 'package:rxdart/rxdart.dart';
+
+// Data class untuk menampung status gabungan dari sebuah slot
+class SlotState {
+  final bool isOccupied; // Status dari sensor fisik
+  final bool isBooked; // Status dari data booking
+
+  SlotState({required this.isOccupied, required this.isBooked});
+}
 
 class ParkingService {
   final DatabaseReference _parkingSlotsRef =
       FirebaseDatabase.instance.ref('parking_slots');
   final DatabaseReference _bookingsRef =
       FirebaseDatabase.instance.ref('bookings');
+  final DatabaseReference _systemStatusRef =
+      FirebaseDatabase.instance.ref('system_status');
 
   // --- Metode Terkait Status Slot Fisik (dari ESP32) ---
 
@@ -175,4 +186,62 @@ class ParkingService {
   }
 
   // Anda dapat menambahkan metode lain di sini, seperti updateBookingStatus, cancelBooking, dll.
+
+  // Stream baru untuk status booking logis
+  Stream<bool> streamBookingStatus(String slotId) {
+    final query = _bookingsRef.orderByChild('slotId').equalTo(slotId);
+    return query.onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return false; // Tidak ada booking sama sekali untuk slot ini
+      }
+
+      final now = DateTime.now();
+      final bookings = Map<String, dynamic>.from(event.snapshot.value as Map);
+
+      for (var bookingEntry in bookings.values) {
+        final booking = Map<String, dynamic>.from(bookingEntry as Map);
+        final status = booking['status'] as String?;
+
+        // Hanya periksa booking yang aktif/terkonfirmasi
+        if (status == 'confirmed' || status == 'pending_payment') {
+          final startTime = DateTime.parse(booking['startTime'] as String);
+          final endTime = DateTime.parse(booking['endTime'] as String);
+
+          // Periksa apakah waktu saat ini berada di antara waktu booking
+          if (now.isAfter(startTime) && now.isBefore(endTime)) {
+            return true; // Ditemukan booking aktif
+          }
+        }
+      }
+      return false; // Tidak ada booking aktif saat ini
+    });
+  }
+
+  // Stream gabungan menggunakan RxDart
+  Stream<SlotState> streamSlotState(String slotId) {
+    // Menambahkan .startWith(false) untuk memastikan stream langsung memancarkan nilai awal.
+    // Ini mencegah StreamBuilder terjebak dalam status 'waiting' jika salah satu path di DB belum ada.
+    return Rx.combineLatest2(
+      streamParkingSlotStatus(slotId).startWith(false),
+      streamBookingStatus(slotId).startWith(false),
+      (bool isOccupied, bool isBooked) =>
+          SlotState(isOccupied: isOccupied, isBooked: isBooked),
+    );
+  }
+
+  // Stream untuk status koneksi ESP32
+  Stream<bool> streamEsp32Status() {
+    return _systemStatusRef.child('esp32_last_seen').onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) {
+        return false; // Dianggap offline jika tidak ada data
+      }
+      // Firebase RTDB server timestamp adalah int (milidetik sejak epoch)
+      final lastSeenMillis = event.snapshot.value as int;
+      final lastSeen = DateTime.fromMillisecondsSinceEpoch(lastSeenMillis);
+      final now = DateTime.now();
+
+      // Anggap offline jika detak jantung terakhir lebih dari 90 detik yang lalu
+      return now.difference(lastSeen).inSeconds < 90;
+    });
+  }
 }

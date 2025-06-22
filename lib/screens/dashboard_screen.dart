@@ -51,6 +51,8 @@ class DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildEspStatusBanner(),
+            const SizedBox(height: 16),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12.0),
@@ -108,8 +110,8 @@ class DashboardScreenState extends State<DashboardScreen> {
                 itemBuilder: (context, index) {
                   final slotNumber = _slotNumbers[index];
 
-                  return StreamBuilder<bool>(
-                    stream: _parkingService.streamParkingSlotStatus(slotNumber),
+                  return StreamBuilder<SlotState>(
+                    stream: _parkingService.streamSlotState(slotNumber),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -131,10 +133,11 @@ class DashboardScreenState extends State<DashboardScreen> {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
-                      final isOccupied = snapshot.data ?? false;
+                      // Gunakan status default jika tidak ada data
+                      final slotState = snapshot.data ??
+                          SlotState(isOccupied: false, isBooked: false);
 
-                      return _buildParkingSlot(
-                          slotNumber, isOccupied, userType);
+                      return _buildParkingSlot(slotNumber, slotState, userType);
                     },
                   );
                 },
@@ -147,39 +150,28 @@ class DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildParkingSlot(
-      String slotNumber, bool isSensorOccupied, String userType) {
+      String slotNumber, SlotState slotState, String userType) {
     // Default colors and text
-    String statusText = 'Tersedia';
-    Color slotContentColor = Colors.green[700]!; // Warna ikon dan teks status
-    Color borderColor = Colors.green[700]!;
-    Color sensorIndicatorColor = Colors.green[400]!; // Indikator sensor fisik
-    IconData slotIcon = FontAwesomeIcons
-        .carRear; // Ikon mobil default (atau squareParking jika lebih cocok)
+    String statusText;
+    Color slotContentColor;
+    Color borderColor;
+    Color sensorIndicatorColor;
+    IconData slotIcon;
 
-    // TODO: Implementasi logika status "Dibooking" yang sebenarnya.
-    // Ini memerlukan query ke data booking untuk slot ini pada waktu saat ini.
-    // Untuk sekarang, kita akan buat placeholder.
-    bool isActuallyBooked =
-        false; // Placeholder, ganti dengan logika sebenarnya.
-    // Misalnya, jika slotNumber == 'Slot 1', kita anggap dibooking untuk demo.
-    if (slotNumber == 'Slot 1' && !isSensorOccupied) {
-      // Contoh demo untuk "Dibooking"
-      isActuallyBooked = true;
-    }
-
-    if (isSensorOccupied) {
+    // Logika baru berdasarkan SlotState
+    if (slotState.isOccupied) {
       statusText = 'Terisi';
       slotContentColor = Colors.red[700]!;
       borderColor = Colors.red[700]!;
       sensorIndicatorColor = Colors.red[400]!;
       slotIcon = FontAwesomeIcons.car; // Mobil solid
-    } else if (isActuallyBooked) {
+    } else if (slotState.isBooked) {
       statusText = 'Dibooking';
       slotContentColor = Theme.of(context).colorScheme.primary; // Oranye
       borderColor = Theme.of(context).colorScheme.primary;
       // Indikator sensor tetap hijau karena secara fisik kosong
       sensorIndicatorColor = Colors.green[400]!;
-      slotIcon = FontAwesomeIcons.carRear; // Mobil outline atau ikon booking
+      slotIcon = FontAwesomeIcons.solidClock; // Ikon jam untuk booking
     } else {
       statusText = 'Tersedia';
       slotContentColor = Colors.green[700]!;
@@ -393,6 +385,50 @@ class DashboardScreenState extends State<DashboardScreen> {
           Text(value),
         ],
       ),
+    );
+  }
+
+  Widget _buildEspStatusBanner() {
+    return StreamBuilder<bool>(
+      stream: _parkingService.streamEsp32Status(),
+      builder: (context, snapshot) {
+        // Tampilkan banner loading atau kosong saat data pertama belum tiba
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink(); // Atau widget loading kecil
+        }
+
+        final bool isOnline = snapshot.data ?? false;
+        final Color bannerColor =
+            isOnline ? Colors.green.shade100 : Colors.amber.shade100;
+        final Color contentColor =
+            isOnline ? Colors.green.shade800 : Colors.amber.shade800;
+        final IconData icon = isOnline ? Icons.check_circle : Icons.warning;
+        final String text = isOnline
+            ? 'Sistem Parkir Online'
+            : 'Sistem Offline: Data mungkin tidak akurat.';
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: bannerColor,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: contentColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                      color: contentColor, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

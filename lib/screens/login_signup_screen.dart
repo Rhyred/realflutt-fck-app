@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Untuk ikon Google
+import 'package:smart_parking_app/services/user_service.dart';
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
@@ -18,6 +19,7 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
 
   bool _isLogin = true;
   bool _isLoading = false;
+  final UserService _userService = UserService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -74,7 +76,8 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         password: _passwordController.text.trim(),
       );
       if (!mounted) return;
-      // Navigasi akan ditangani oleh AuthWrapper
+      // Navigasi eksplisit untuk memastikan UI diperbarui
+      Navigator.pushReplacementNamed(context, '/main_navigation');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       _showErrorSnackbar('Gagal masuk: ${e.message}');
@@ -100,10 +103,24 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
       return;
     }
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      if (userCredential.user != null) {
+        // Buat profil dasar di Realtime Database setelah registrasi berhasil
+        await _userService.updateUserProfile(
+          userId: userCredential.user!.uid,
+          name: userCredential.user!.displayName ??
+              '', // Nama bisa kosong saat awal
+          plateNumber: '', // Plat nomor kosong saat awal
+          phoneNumber: '', // No HP kosong saat awal
+          photoURL: userCredential.user!.photoURL ?? '',
+        );
+      }
+
       if (!mounted) return;
       // Arahkan ke halaman lengkapi profil setelah signup berhasil
       Navigator.pushReplacementNamed(context, '/complete_profile');
@@ -138,9 +155,24 @@ class LoginSignupScreenState extends State<LoginSignupScreen>
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // Jika ini adalah pengguna baru dari Google, buat profil dasar untuk mereka
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        await _userService.updateUserProfile(
+          userId: userCredential.user!.uid,
+          name: userCredential.user!.displayName ?? '',
+          plateNumber: '',
+          phoneNumber: '',
+          photoURL: userCredential.user!.photoURL ?? '',
+        );
+      }
+
       if (!mounted) return;
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      // Navigasi akan ditangani oleh AuthWrapper
+      // Navigasi eksplisit untuk memastikan UI diperbarui
+      Navigator.pushReplacementNamed(context, '/main_navigation');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       _showErrorSnackbar('Gagal masuk dengan Google: ${e.message}');
